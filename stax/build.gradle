@@ -1,0 +1,77 @@
+plugins {
+    id 'java'
+}
+
+group 'org.jsun.staf'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.tinylog:tinylog:1.3.2'
+    compile 'com.ibm:staf:3.4.26'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+
+
+task stafManifest {
+
+    doLast {
+        String lineSep = System.getProperty("line.separator")
+        File file = file('MANIFEST.MF')
+        file.write('')
+        file.append("Manifest-Version: 1.0" + lineSep)
+        file.append(lineSep)
+        file.append("Name: staf/service/info" + lineSep)
+        file.append("Service-Class: com.ibm.staf.service.stax.STAX" + lineSep)
+        String packageJars = configurations.runtime.collect { it.getName() - '.jar' }.join(' ')
+        if(packageJars.length() > 72) {
+            String newPackageJars = ""
+            for (int i = 0; i < packageJars.length(); i += 70) {
+                newPackageJars += packageJars.substring(i, Math.min(i + 70, packageJars.length()))  + lineSep + " "
+            }
+            file.append("Packaged-Jars: " + newPackageJars)
+        } else {
+            file.append("Packaged-Jars: " + packageJars)
+        }
+
+        file.append(" " + lineSep)
+
+        file.append("Name: staf/service/shared_jython" + lineSep)
+        file.append("Jython-Version: 2.7.0-staf-v1" + lineSep)
+
+        file.append(" " + lineSep)
+    }
+
+}
+
+task staf(type: Jar, dependsOn: stafManifest) {
+
+    manifest {
+        from 'MANIFEST.MF'
+    }
+
+    into('STAF-INF/jars') {
+        from configurations.runtime
+    }
+
+    into('STAF-INF/classes') {
+        from compileJava.destinationDir
+        from ('src/main/resources') {
+            into 'resources'
+        }
+    }
+
+    into('JYTHON-INF/Lib') {
+        from ('Lib')
+    }
+
+    archiveName = 'STAX-' + version + '.jar'
+}

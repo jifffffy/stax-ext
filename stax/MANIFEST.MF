@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+
+Name: staf/service/info
+Service-Class: com.ibm.staf.service.stax.STAX
+Packaged-Jars: jython serializer xalan xercesImpl xmlParserAPIs tinylog-1.3.2 staf-3.
+ 4.26
+  
+Name: staf/service/shared_jython
+Jython-Version: 2.7.0-staf-v1
+ 
