@@ -26,40 +26,33 @@ import org.python.core.__builtin__;
 // Jython 2.5: Needs the following 2 lines
 
 /**
- *  STAXUtil - This class provides STAX utility functions
+ * STAXUtil - This class provides STAX utility functions
  */
-public class STAXUtil 
-{
+public class STAXUtil {
     /**
      * Accepts Python code as niput and removes any white space from the
      * beginning of new lines and compiles the Python code to validate its
      * syntax and returns valid Python code.
-     * 
-     * @param value A string containing Python code to be parsed for Python
-     * and compiled to validate its syntax.
-     * 
+     *
+     * @param value  A string containing Python code to be parsed for Python
+     *               and compiled to validate its syntax.
      * @param action A STAXActionDefaultImpl object that references the
-     * Python code.  It's used if an error occurs compiling the Python code
-     * to provide additional information such as line number, xml file name,
-     * the element in error, the attribute in error, etc.
-     * 
+     *               Python code.  It's used if an error occurs compiling the Python code
+     *               to provide additional information such as line number, xml file name,
+     *               the element in error, the attribute in error, etc.
      * @return String containing the valid Python code with white space
      * removed from the beginning of new lines.
      */
     public static String parseAndCompileForPython(String value,
                                                   STAXActionDefaultImpl action)
-        throws STAXPythonCompileException
-    {
+            throws STAXPythonCompileException {
         String parsedCode = parseForPython(value);
 
-        try
-        {
+        try {
             compileForPython(parsedCode);
-        }
-        catch (STAXPythonCompileException e)
-        {
+        } catch (STAXPythonCompileException e) {
             throw new STAXPythonCompileException(
-                STAXUtil.formatErrorMessage(action) + "\n" + e.getMessage());
+                    STAXUtil.formatErrorMessage(action) + "\n" + e.getMessage());
         }
 
         return parsedCode;
@@ -69,32 +62,26 @@ public class STAXUtil
      * Accepts Python code as niput and removes any white space from the
      * beginning of new lines and compiles the Python code to validate its
      * syntax and returns valid Python code.
-     * 
-     * @param value A string containing Python code to be parsed for Python
-     * and compiled to validate its syntax.
-     * 
+     *
+     * @param value     A string containing Python code to be parsed for Python
+     *                  and compiled to validate its syntax.
      * @param errorInfo A string containing additional error information to
-     * be prepended to the error message if a STAXPythonCompileException
-     * occurs.  Allows you to identify the xml element (and attribute, if
-     * applicable) containing the invalid Python code             .
-     * 
+     *                  be prepended to the error message if a STAXPythonCompileException
+     *                  occurs.  Allows you to identify the xml element (and attribute, if
+     *                  applicable) containing the invalid Python code             .
      * @return String containing the valid Python code with white space
      * removed from the beginning of new lines.
      */
     public static String parseAndCompileForPython(String value,
                                                   String errorInfo)
-        throws STAXPythonCompileException
-    {
+            throws STAXPythonCompileException {
         String parsedCode = parseForPython(value);
 
-        try
-        {
+        try {
             compileForPython(parsedCode);
-        }
-        catch (STAXPythonCompileException e)
-        {
+        } catch (STAXPythonCompileException e) {
             throw new STAXPythonCompileException(errorInfo + "\n" +
-                                                 e.getMessage());
+                    e.getMessage());
         }
 
         return parsedCode;
@@ -102,19 +89,17 @@ public class STAXUtil
 
 
     /**
-     *  Accepts Python code as input and removes any white space from the
+     * Accepts Python code as input and removes any white space from the
      * beginning of new lines and returned the parsed Python code.
-     * 
+     *
      * @param value A string containing python code to be parsed for Python
-     * 
      * @return String containing Python code with white space removed from
      * the beginning of new lines
      */
-    public static String parseForPython(String value)
-    {
+    public static String parseForPython(String value) {
         StringBuffer parsedValue = new StringBuffer();
         int pos = 0;     // Position of first non-whitespace character
-                         // in 1st line, taking into account tabs.
+        // in 1st line, taking into account tabs.
 
         // Skip any beginning lines that are just white space
         //  (including tabs, carriage returns, etc.)
@@ -123,52 +108,43 @@ public class STAXUtil
         boolean firstLine = true;
         BufferedReader br = new BufferedReader(new StringReader(value));
         StringTokenizer st;
-        
-        try
-        {
-            while ((line = br.readLine()) != null)
-            {
-                if (firstLine)
-                {
+
+        try {
+            while ((line = br.readLine()) != null) {
+                if (firstLine) {
                     // Find the number of leading whitespace characters.
                     // Go through the string character by character, and expand 
                     // each tab to the appropriate number of spaces required to 
                     // reach the next tab stop (set at intervals of 8 characters).
 
                     st = new StringTokenizer(line);
-                    if (st.hasMoreTokens())
-                    {
+                    if (st.hasMoreTokens()) {
                         //Found first line that isn't just whitespace
                         firstLine = false;
                         pos = 0;
                         int len = line.length();
                         int i = 0;
-                        
+
                         // Append 8 spaces for each leading tab character.
                         for (; i < len && line.charAt(i) == '\t'; i++)
-                            pos+=8;
+                            pos += 8;
 
                         // For remaining tabs, add enough spaces to get to the next
                         // multiple of 8 (until reach a non-whitespace character).
-                        for (; i < len; i++)
-                        {  
-                            char c = line.charAt(i); 
+                        for (; i < len; i++) {
+                            char c = line.charAt(i);
                             if (c == ' ')
                                 pos++;
-                            else if (c == '\t')
-                            {
+                            else if (c == '\t') {
                                 do
                                     pos++;
                                 while (pos % 8 != 0);
-                            }
-                            else  // non-whitespace character found
+                            } else  // non-whitespace character found
                                 break;
                         }
                         parsedValue.append(line.substring(i));
                     }
-                }
-                else
-                {  
+                } else {
                     // Remove the number of leading white space characters
                     //  found in the 1st line (pos) from each additional line
                     //  if possible (but don't remove any non-whitespace chars).
@@ -177,48 +153,37 @@ public class STAXUtil
                     int len = line.length();
                     int i = 0;
 
-                    for (; i < len && pos2 <= pos; i++)
-                    {
+                    for (; i < len && pos2 <= pos; i++) {
                         char c = line.charAt(i);
                         if (c == ' ')
                             pos2++;
-                        else if (c == '\t')
-                        {
+                        else if (c == '\t') {
                             do
                                 pos2++;
                             while (pos2 % 8 != 0);
-                        }
-                        else  // non-whitespace character found
+                        } else  // non-whitespace character found
                             break;
-                    } 
+                    }
                     parsedValue.append("\n");
 
                     // Add leading blanks, if any.
-                    while (pos2 > pos)
-                    {
+                    while (pos2 > pos) {
                         parsedValue.append(" ");
                         pos2--;
                     }
                     parsedValue.append(line.substring(i));
                 }
             }
-        }
-        catch (Exception e)
-        {
-        	STAX.logToJVMLog(
-        	    "Error", "STAXUtil::parseForPython(): " + e.toString());
+        } catch (Exception e) {
+            STAX.logToJVMLog(
+                    "Error", "STAXUtil::parseForPython(): " + e.toString());
             return value;
-        }
-        finally
-        {
-            try
-            {
+        } finally {
+            try {
                 br.close();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 STAX.logToJVMLog(
-                	"Error", "STAXUtil::parseForPython(): " + e.toString());
+                        "Error", "STAXUtil::parseForPython(): " + e.toString());
                 return value;
             }
         }
@@ -226,77 +191,68 @@ public class STAXUtil
         return parsedValue.toString();
     }
 
-    /** 
+    /**
      * Accepts parsed Python code as input and compiles the Python code to
      * validate its syntax.  Throws a STAXPythonCompileException if an error
      * occurs compiling the Python code.
-     * 
-     * @param value A string containing parsed python code to be compiled by
-     * Python to validate its syntax.
+     *
+     * @param parsedCode A string containing parsed python code to be compiled by
+     *              Python to validate its syntax.
      */
     public static void compileForPython(String parsedCode)
-        throws STAXPythonCompileException
-    {
-        try
-        {
+            throws STAXPythonCompileException {
+        try {
             /* Jython 2.1:
             PyCode code = __builtin__.compile(parsedCode, "<string>", "exec");
             */
             // Jython 2.5:
             Py.compile_flags(
-                parsedCode, "<string>",
-                CompileMode.exec,
-                Py.getCompilerFlags().combine(
-                    CompilerFlags.PyCF_SOURCE_IS_UTF8));
-        }
-        catch (Exception e)
-        {
+                    parsedCode, "<string>",
+                    CompileMode.exec,
+                    Py.getCompilerFlags().combine(
+                            CompilerFlags.PyCF_SOURCE_IS_UTF8));
+        } catch (Exception e) {
             throw new STAXPythonCompileException(
-                "Python code compile failed for:\n" + parsedCode +
-                "\n\n" + e.toString());
+                    "Python code compile failed for:\n" + parsedCode +
+                            "\n\n" + e.toString());
         }
     }
 
-    /** 
+    /**
      * Generates a formatted error message the contains important information
      * such as the line number of the action that failed, the element name
      * of the action that failed.
+     *
      * @param action The action that is in error.
-     */ 
-    public static String formatErrorMessage(STAXActionDefaultImpl action)
-    {
+     */
+    public static String formatErrorMessage(STAXActionDefaultImpl action) {
         STAXElementInfo info = action.getElementInfo();
 
-        if (info.getElementName() == null)
-        {
+        if (info.getElementName() == null) {
             info.setElementName(action.getElement());
         }
 
         StringBuffer errMsg = new StringBuffer("File: ");
-         
+
         errMsg.append(action.getXmlFile()).append(", Machine: ").append(
-            action.getXmlMachine());
+                action.getXmlMachine());
 
         errMsg.append("\nLine ").append(action.getLineNumber(
-            info.getElementName(), info.getElementIndex())).append(": ");
+                info.getElementName(), info.getElementIndex())).append(": ");
 
         if ((info.getElementName() != null) &&
-            (info.getAttributeName() == null))
-        {
+                (info.getAttributeName() == null)) {
             errMsg.append("Error in element type \"").append(
-                info.getElementName()).append("\".");
-        }
-        else if ((info.getElementName() != null) &&
-                 (info.getAttributeName() != null))
-        {
+                    info.getElementName()).append("\".");
+        } else if ((info.getElementName() != null) &&
+                (info.getAttributeName() != null)) {
             errMsg.append("Error in attribute \"").append(
-                info.getAttributeName()).append(
+                    info.getAttributeName()).append(
                     "\" associated with element type \"").append(
-                        info.getElementName()).append("\".");
+                    info.getElementName()).append("\".");
         }
 
-        if (info.getErrorMessage() != null)
-        {
+        if (info.getErrorMessage() != null) {
             errMsg.append("\n\n").append(info.getErrorMessage());
         }
 
@@ -308,34 +264,32 @@ public class STAXUtil
      * name of the action, any info provided by the action's getInfo() method,
      * line number of the element, the XML file containing the element, and
      * the machine where the XML file esided.
-     * 
+     *
      * @param action The action representing the element being executed
-     * 
      * @return String containing a formatted string containing information
      * about an action
-     */ 
-    public static String formatActionInfo(STAXActionDefaultImpl action)
-    {
+     */
+    public static String formatActionInfo(STAXActionDefaultImpl action) {
         StringBuffer actionInfo = new StringBuffer(action.getElement());
 
-        if ((action.getInfo() != null) && (action.getInfo().length() > 0))
-        {
+        if ((action.getInfo() != null) && (action.getInfo().length() > 0)) {
             actionInfo.append(": ").append(action.getInfo());
         }
 
         actionInfo.append(" (Line: ").append(action.getLineNumber()).append(
-            ", File: ").append(action.getXmlFile()).append(
+                ", File: ").append(action.getXmlFile()).append(
                 ", Machine: ").append(action.getXmlMachine()).append(")");
 
         return actionInfo.toString();
     }
 
-    /** Get line number by getting value of attribute _ln for the input node
-     * @param node a map of the attributes for an element in the DOM tree
+    /**
+     * Get line number by getting value of attribute _ln for the input node
+     *
+     * @param attrs a map of the attributes for an element in the DOM tree
      * @return a striong containing the line number
      */
-    public static String getLineNumberFromAttrs(NamedNodeMap attrs)
-    {
+    public static String getLineNumberFromAttrs(NamedNodeMap attrs) {
         String lineNumber = "Unknown";
 
         Node thisAttr = attrs.getNamedItem("_ln");
@@ -350,48 +304,37 @@ public class STAXUtil
     /**
      * Converts a STAF request number that is > Integer.MAX_VALUE to a
      * negative number.
-     * 
+     * <p>
      * Doing this for now to handle STAF request numbers > integer.MAX_VALUE
      * so as not to impact STAX extensions that implement the
      * STAXSTAFRequestCompleteListener interface's requestComplete() method
      * which passes requestNumber as an int.
-     * 
+     * <p>
      * In a future major STAX release, we may change the requestComplete()
      * method to represent requestNumber as a long instead of an int instead
      * of converting it to a negative number.
-     * 
+     *
      * @param requestNumberString a string containing the STAF Request Number
-     * 
      * @return an Integer object that contains the converted request number
      */
     public static Integer convertRequestNumber(String requestNumberString)
-        throws NumberFormatException
-    {
-        try
-        {
-            return new Integer(requestNumberString);                                        
-        }
-        catch (NumberFormatException e)
-        {
-            try
-            {
+            throws NumberFormatException {
+        try {
+            return new Integer(requestNumberString);
+        } catch (NumberFormatException e) {
+            try {
                 long longRequestNumber = new Long(requestNumberString).
-                    longValue();
+                        longValue();
 
-                if (longRequestNumber > Integer.MAX_VALUE)
-                {
+                if (longRequestNumber > Integer.MAX_VALUE) {
                     int requestNumber = -1 *
-                        ((int)(longRequestNumber - Integer.MAX_VALUE));
+                            ((int) (longRequestNumber - Integer.MAX_VALUE));
 
                     return new Integer(requestNumber);
-                }
-                else
-                {
+                } else {
                     throw e;
                 }
-            }
-            catch (NumberFormatException e2)
-            {
+            } catch (NumberFormatException e2) {
                 throw e2;
             }
         }
@@ -401,67 +344,59 @@ public class STAXUtil
      * This method gets the short name for a class by removing the STAX
      * package name at the beginning of the class name (if present) and by
      * removing the specified suffix at the end of the class name (if present)
-     * 
+     *
      * @param longClassName A string containing a STAX class name
-     * @param classSuffix A string containing a suffix to be removed from the
-     * long class name
-     * 
+     * @param classSuffix   A string containing a suffix to be removed from the
+     *                      long class name
      * @return String containing the "short" class name
      */
     public static String getShortClassName(String longClassName,
-                                           String classSuffix)
-    {
+                                           String classSuffix) {
         String className = longClassName;
 
         if (className.startsWith(STAX.PACKAGE_NAME))
             className = className.substring(STAX.PACKAGE_NAME.length());
 
-        if (className.endsWith(classSuffix))
-        {
+        if (className.endsWith(classSuffix)) {
             className = className.substring(
-                0, className.length() - classSuffix.length());
+                    0, className.length() - classSuffix.length());
         }
 
         return className;
     }
-    
+
     /**
      * Normalizes a file path.
-     * 
-     * @param path the file path to be normalized
+     *
+     * @param path    the file path to be normalized
      * @param fileSep the file separator for the machine where the file resides
      * @return a normalized file path if the path is valid; otherwise, the
-     *  original path is returned
+     * original path is returned
      */
-    public static String normalizeFilePath(String path, String fileSep)
-    {
+    public static String normalizeFilePath(String path, String fileSep) {
         String normalized = path;
 
-        if ((path == null) || (path.length() == 0))
-        {
+        if ((path == null) || (path.length() == 0)) {
             return path;
         }
 
-        if (fileSep.equals("\\"))
-        {
+        if (fileSep.equals("\\")) {
             // Windows path
-        
+
             // Check for windows drive letter
 
             char driveLetter = path.charAt(0);
             boolean isWindowsDrivePath = path.length() > 1 &&
-                path.charAt(1) == ':' &&
-                (driveLetter >= 'a' && driveLetter <= 'z') ||
-                (driveLetter >= 'A' && driveLetter <= 'Z');
-                
-            if (isWindowsDrivePath)
-            {
+                    path.charAt(1) == ':' &&
+                    (driveLetter >= 'a' && driveLetter <= 'z') ||
+                    (driveLetter >= 'A' && driveLetter <= 'Z');
+
+            if (isWindowsDrivePath) {
                 // Path starts with Windows drive letter + :
 
                 String uriPath = path.replace('\\', '/');
 
-                try
-                {
+                try {
                     URI uri = new URI("file:/" + uriPath);
                     uri = uri.normalize();
 
@@ -470,81 +405,65 @@ public class STAXUtil
 
                     // Since Windows, use \ instead of / for the file separator
                     normalized = normalized.replace('/', '\\');
-                }
-                catch (URISyntaxException e)
-                {
+                } catch (URISyntaxException e) {
                     return path;
                 }
-            }
-            else if (path.charAt(0) == '\\' || path.charAt(0) == '/')
-            {
+            } else if (path.charAt(0) == '\\' || path.charAt(0) == '/') {
                 // Check if Windows UNC path, e.g. \\test.ibm.com\folder1
                 // or //test.ibm.com/folder1
 
                 boolean isUNC = path.startsWith("\\\\") ||
-                    path.startsWith("//");
+                        path.startsWith("//");
                 String uncServer = null;
                 String uriPath = path.replace('\\', '/');
-                
-                if (isUNC)
-                {
+
+                if (isUNC) {
                     // Extract the server name
                     int index = uriPath.indexOf('/', 2);
-                
+
                     if (index == -1)
                         return path;
-                
+
                     uncServer = uriPath.substring(2, index);
-                
+
                     // The file path to be normalized is the remainder of
                     // the path
                     uriPath = uriPath.substring(index);
                 }
-            
-                try
-                {
+
+                try {
                     URI uri = new URI("file:" + uriPath);
                     uri = uri.normalize();
                     normalized = uri.getPath();
-                }
-                catch (URISyntaxException e)
-                {
+                } catch (URISyntaxException e) {
                     return path;
                 }
-            
-                if (isUNC)
-                {
+
+                if (isUNC) {
                     // Add the \\ and server name back to the normalized UNC
                     // file path
                     normalized = "\\\\" + uncServer +
-                        normalized.replace('/', '\\');
+                            normalized.replace('/', '\\');
                 }
-            }
-            else
-            {
+            } else {
                 // Relative path (doesn't start with / or \ or a Windows
                 // drive letter)
 
                 String uriPath = path.replace('\\', '/');
 
-                try
-                {
+                try {
                     URI uri = new URI("file:/" + uriPath);
                     uri = uri.normalize();
-                
+
                     // Need to remove the leading forward slash
                     normalized = uri.getPath().substring(1);
-                }
-                catch (URISyntaxException e)
-                {
+                } catch (URISyntaxException e) {
                     return path;
                 }
             }
-        }
-        else
-        {
+        } else {
             // Unix path
-            
+
             String uriPath = path;
 
             // Replace any backslashes in the path with the percent encoded
@@ -553,57 +472,45 @@ public class STAXUtil
 
             int backslashIndex = path.indexOf('\\');
 
-            if (backslashIndex > -1)
-            {
+            if (backslashIndex > -1) {
                 uriPath = uriPath.replaceAll("\\\\", "%5C");
             }
-            
+
             // Determine if it's an absolute or normal path
 
-            if (uriPath.charAt(0) == '/')
-            {
+            if (uriPath.charAt(0) == '/') {
                 // Absolute path
 
-                try
-                {
+                try {
                     URI uri = new URI("file:" + uriPath);
                     uri = uri.normalize();
                     normalized = uri.getPath();
-                }
-                catch (URISyntaxException e)
-                {
+                } catch (URISyntaxException e) {
                     return path;
                 }
-            }
-            else
-            {
+            } else {
                 // Relative path (doesn't start with /)
 
-                try
-                {
+                try {
                     URI uri = new URI("file:/" + uriPath);
                     uri = uri.normalize();
-                
+
                     // Need to remove the leading forward slash
                     normalized = uri.getPath().substring(1);
-                }
-                catch (URISyntaxException e)
-                {
+                } catch (URISyntaxException e) {
                     return path;
                 }
             }
         }
-        
-        if (normalized == null)
-        {
+
+        if (normalized == null) {
             return path;
         }
-        
+
         return normalized;
     }
 
-    public static boolean isRelativePath(String path, String fileSeparator)
-    {
+    public static boolean isRelativePath(String path, String fileSeparator) {
         // Check if a relative or absolute path was specified.
         // - On Unix, an absolute path starts with a slash or a tilde (~)
         //   and a relative path does not.
@@ -616,36 +523,28 @@ public class STAXUtil
         //   string, regardless of operating system.
         // If it isn't an absolute path, it's a relative path.
 
-        if ((path == null) || (path.length() == 0))
-        {
+        if ((path == null) || (path.length() == 0)) {
             // Assume absolute file name
             return false;
         }
 
-        if (fileSeparator.equals("\\"))
-        {
+        if (fileSeparator.equals("\\")) {
             // Windows path
 
-            if ((path.charAt(0) == '\\') || (path.charAt(0) == '/'))
-            {
+            if ((path.charAt(0) == '\\') || (path.charAt(0) == '/')) {
                 // Absolute file name because starts with a slash or backslash
                 return false;
-            }
-            else if ((path.length() > 1) &&
-                     (path.charAt(1) == ':') &&
-                     ((path.charAt(0) >= 'a' && path.charAt(0) <= 'z') ||
-                      (path.charAt(0) >= 'A' && path.charAt(0) <= 'Z')))
-            {
+            } else if ((path.length() > 1) &&
+                    (path.charAt(1) == ':') &&
+                    ((path.charAt(0) >= 'a' && path.charAt(0) <= 'z') ||
+                            (path.charAt(0) >= 'A' && path.charAt(0) <= 'Z'))) {
                 // Absolute file name because starts with a drive specification
                 return false;
             }
-        }
-        else
-        {
+        } else {
             // Unix path
 
-            if ((path.charAt(0) == '/') || (path.charAt(0) == '~'))
-            {
+            if ((path.charAt(0) == '/') || (path.charAt(0) == '~')) {
                 // Absolute file name because starts with a slash or tilde
                 return false;
             }
@@ -658,24 +557,22 @@ public class STAXUtil
 
     /**
      * Returns the parent path for the specified file name.
-     * @param A string containing the file name
-     * @param A string containing the file separator for the operating system
-     * of the machine where the file resides
-     */ 
-    public static String getParentPath(String fileName, String fileSeparator)
-    {
+     *
+     * @param fileName string containing the file name
+     * @param fileSeparator string containing the file separator for the operating system
+     *          of the machine where the file resides
+     */
+    public static String getParentPath(String fileName, String fileSeparator) {
         int endParentPathIndex = -1;
 
-        if (fileSeparator.equals("\\"))
-        {
+        if (fileSeparator.equals("\\")) {
             // Windows filename
 
             // Check if the file name ends in a \ or / (and isn't just \ or /)
             // and if so, remove the trailing file separator
 
             if ((fileName.length() > 1) &&
-                ((fileName.endsWith("\\")) || (fileName.endsWith("/"))))
-            {
+                    ((fileName.endsWith("\\")) || (fileName.endsWith("/")))) {
                 fileName = fileName.substring(0, fileName.length() - 1);
             }
 
@@ -689,16 +586,13 @@ public class STAXUtil
                 endParentPathIndex = lastSlashIndex;
             else
                 endParentPathIndex = lastBackslashIndex;
-        }
-        else
-        {
+        } else {
             // Unix filename
 
             // Check if the file name ends with the file separator (and isn't
             // just "/") and if so, remove the trailing file separator
 
-            if ((fileName.length() > 1) && (fileName.endsWith(fileSeparator)))
-            {
+            if ((fileName.length() > 1) && (fileName.endsWith(fileSeparator))) {
                 fileName = fileName.substring(0, fileName.length() - 1);
             }
 
@@ -707,10 +601,10 @@ public class STAXUtil
 
             endParentPathIndex = fileName.lastIndexOf('/');
         }
-        
+
         if (endParentPathIndex == -1)
             return "";
-        
+
         return fileName.substring(0, endParentPathIndex + 1);
     }
 }

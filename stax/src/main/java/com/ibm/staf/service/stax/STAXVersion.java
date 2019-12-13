@@ -8,13 +8,12 @@
 package com.ibm.staf.service.stax;
 
 /**
- * @deprecated  As of STAF 3.1.0.  Use the STAFVersion class provided in the
- *              JSTAF.jar file instead.
+ * @deprecated As of STAF 3.1.0.  Use the STAFVersion class provided in the
+ * JSTAF.jar file instead.
  */
-public class STAXVersion
-{
+public class STAXVersion {
     private String fVersion;
-    private int[]  fVersionArray = { 0, 0, 0, 0 };
+    private int[] fVersionArray = {0, 0, 0, 0};
     private String fText = new String("");
 
     public static int NUM_VERSION_LEVELS = 4;
@@ -31,34 +30,27 @@ public class STAXVersion
        - text is separated by one or more spaces from the version numbers
        
        Otherwise, a STAXException is thrown. 
-    */   
+    */
 
-    public STAXVersion(String version) throws NumberFormatException
-    {
+    public STAXVersion(String version) throws NumberFormatException {
         fVersion = version;
 
         String versionStr = new String("");
 
         // Verify that the version is valid
 
-        if (version.equals("") || version.equals("<N/A>"))
-        {
+        if (version.equals("") || version.equals("<N/A>")) {
             // Do nothing
             return;
-        }
-        else
-        {
+        } else {
             // Separate any text from the numeric version in version1
 
             int spaceIndex = fVersion.indexOf(" ");
 
-            if (spaceIndex != -1)
-            {
+            if (spaceIndex != -1) {
                 versionStr = fVersion.substring(0, spaceIndex);
                 fText = fVersion.substring(spaceIndex + 1).trim();
-            }
-            else
-            {
+            } else {
                 versionStr = fVersion;
             }
         }
@@ -69,23 +61,18 @@ public class STAXVersion
 
         int dotIndex = -1;
 
-        for (int i = 0; i < NUM_VERSION_LEVELS; i++)
-        {
+        for (int i = 0; i < NUM_VERSION_LEVELS; i++) {
             dotIndex = versionStr.indexOf(".");
 
-            if (dotIndex == -1)
-            {
-                if (!versionStr.equals(""))
-                {
+            if (dotIndex == -1) {
+                if (!versionStr.equals("")) {
                     fVersionArray[i] = (new Integer(versionStr)).intValue();
                 }
 
                 break;
-            }
-            else
-            {
+            } else {
                 fVersionArray[i] = (new Integer(
-                    versionStr.substring(0, dotIndex))).intValue();
+                        versionStr.substring(0, dotIndex))).intValue();
 
                 if (dotIndex < (versionStr.length() - 1))
                     versionStr = versionStr.substring(dotIndex + 1);
@@ -95,18 +82,15 @@ public class STAXVersion
         }
     }
 
-    public String getVersion()
-    {
+    public String getVersion() {
         return fVersion;
     }
 
-    public int[] getVersionArray()
-    {
+    public int[] getVersionArray() {
         return fVersionArray;
     }
 
-    public String getText()
-    {
+    public String getText() {
         return fText;
     }
 
@@ -140,21 +124,19 @@ public class STAXVersion
          given argument
        - A value greater than 0 if this STAXVersion object is greater than
          the given argument.
-    */   
+    */
 
-    public int compareTo(STAXVersion version)
-    {
+    public int compareTo(STAXVersion version) {
         // Check if the two versions are equal and, if so, return 0.
 
         if (fVersion.equals(version.getVersion()))
             return 0;
-        
+
         // Compare numeric versions stored in the fVersionArray
 
         int[] versionArray = version.getVersionArray();
 
-        for (int i = 0; i < NUM_VERSION_LEVELS; i++)
-        {
+        for (int i = 0; i < NUM_VERSION_LEVELS; i++) {
             if (fVersionArray[i] < versionArray[i])
                 return -1;
             else if (fVersionArray[i] > versionArray[i])
@@ -164,15 +146,14 @@ public class STAXVersion
         // Versions are equal so compare text
 
         if (fText.equals("") && !version.getText().equals(""))
-            return 1;  
+            return 1;
         else if (!fText.equals("") && version.getText().equals(""))
             return -1;
         else
             return fText.compareToIgnoreCase(version.getText());
     }
 
-    public String toString()
-    {
+    public String toString() {
         return fVersion;
     }
 }

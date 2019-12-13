@@ -1,16 +1,4 @@
-plugins {
-    id 'java'
-}
 
-group 'org.jsun.staf'
-version '1.0-SNAPSHOT'
-
-sourceCompatibility = 1.8
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
 
 dependencies {
     compile 'org.tinylog:tinylog:1.3.2'
