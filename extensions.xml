@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax-extensions SYSTEM "stax-extensions.dtd">
+<stax-extensions>
+    <!--no parameters, no include-elements, and no exclude-elements-->
+    <extension jarfile="{STAF/Config/STAFRoot}/services/stax/ExtMessageText.jar"/>
+    <!--has one parameter specified named delay and specifies to include all elements supported by
+    this extension jar file except for the ext-wait and ext-sleep elements-->
+    <extension jarfile="{STAF/Config/STAFRoot}/services/stax/ExtDelay.jar">
+        <parameter name="delay" value="5"/>
+        <exclude-element name="ext-wait"/>
+        <exclude-element name="ext-sleep"/>
+    </extension>
+    <!--specifies to include just one element named email so that any other elements supported by this
+    extension jar file are excluded (not registered)-->
+    <extension jarfile="{STAF/Config/STAFRoot}/services/stax/EmailExt.jar">
+        <include-element name="email"/>
+    </extension>
+</stax-extensions>

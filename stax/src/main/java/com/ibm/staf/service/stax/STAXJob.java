@@ -25,8 +25,7 @@ import org.python.core.__builtin__;
  * containing XML that defines a STAX job.
  */
 public class STAXJob implements STAXThreadCompleteListener,
-                                STAXSTAFQueueListener
-{
+        STAXSTAFQueueListener {
     // For debugging - Counts and prints the number of cache gets/adds
     static final boolean COUNT_PYCODE_CACHES = false;
 
@@ -82,21 +81,21 @@ public class STAXJob implements STAXThreadCompleteListener,
     static final int BREAKPOINT_FUNCTION = 0;
     static final int BREAKPOINT_LINE = 1;
 
-    /** 
-      * Creates a new STAXJob instance passing in a STAX object which
-      * represents the STAX service that is executing this job.
-      */
+    /**
+     * Creates a new STAXJob instance passing in a STAX object which
+     * represents the STAX service that is executing this job.
+     */
     public STAXJob(STAX staxService) {
         this(staxService, new STAXDocument());
     }
-    
+
     /**
-     * Creates a new STAXJob instance using an existing STAX 
+     * Creates a new STAXJob instance using an existing STAX
      * document.
-     * 
+     *
      * @param staxService the STAX service.
-     * @param document the STAX document to be executed by 
-     * this job.
+     * @param document    the STAX document to be executed by
+     *                    this job.
      */
     public STAXJob(STAX staxService, STAXDocument document) {
         fSTAX = staxService;
@@ -106,227 +105,295 @@ public class STAXJob implements STAXThreadCompleteListener,
         fThreadMap.put(thread.getThreadNumberAsInteger(), thread);
         fClearlogs = fSTAX.getClearlogs();
         fLogTCElapsedTime = fSTAX.getLogTCElapsedTime();
-        fLogTCNumStarts   = fSTAX.getLogTCNumStarts();
-        fLogTCStartStop   = fSTAX.getLogTCStartStop();
-        fPythonOutput     = fSTAX.getPythonOutput();
-        fPythonLogLevel   = fSTAX.getPythonLogLevel();
+        fLogTCNumStarts = fSTAX.getLogTCNumStarts();
+        fLogTCStartStop = fSTAX.getLogTCStartStop();
+        fPythonOutput = fSTAX.getPythonOutput();
+        fPythonLogLevel = fSTAX.getPythonLogLevel();
         fInvalidLogLevelAction = fSTAX.getInvalidLogLevelAction();
-        fMaxSTAXThreads   = fSTAX.getMaxSTAXThreads();
+        fMaxSTAXThreads = fSTAX.getMaxSTAXThreads();
     }
 
     /**
      * Gets the STAX object which represents the job's STAX service
+     *
      * @return an instance of the job's STAX service
      */
-    public STAX getSTAX() { return fSTAX; }
+    public STAX getSTAX() {
+        return fSTAX;
+    }
 
     /**
      * Gets the STAX document that is executed by this job.
-     * 
+     *
      * @return the job's STAX document.
      */
-    public STAXDocument getSTAXDocument() { return fDocument; }
-    
+    public STAXDocument getSTAXDocument() {
+        return fDocument;
+    }
+
     /**
      * Sets the STAX document to be executed by this job
+     *
      * @param document the STAX document to be executed by this job
      */
-    public void setSTAXDocument(STAXDocument document)
-    {
+    public void setSTAXDocument(STAXDocument document) {
         fDocument = document;
-    }    
+    }
 
     /**
      * Gets the next number for a thread in a job
+     *
      * @return a number for the next thread in a job
      */
-    public int getNextThreadNumber()
-    {
-        synchronized (fNextThreadNumberSynch)
-        {
+    public int getNextThreadNumber() {
+        synchronized (fNextThreadNumberSynch) {
             return fNextThreadNumber++;
         }
     }
 
     /**
      * Gets the next number for a breakpoint in a job
+     *
      * @return a number for the next breakpoint in a job
      */
-    public int getNextBreakpointNumber()
-    {
-        synchronized (fNextBreakpointNumberSynch)
-        {
+    public int getNextBreakpointNumber() {
+        synchronized (fNextBreakpointNumberSynch) {
             return fNextBreakpointNumber++;
         }
     }
 
-    public void setDefaultCallAction(STAXCallAction action)
-    {
+    public void setDefaultCallAction(STAXCallAction action) {
         fDefaultCallAction = action;
     }
 
     /**
      * Gets the name of the function that should be called to start the
      * execution of a job
+     *
      * @return the name of the starting function for a job
      */
-    public String getStartFunction() { return fDocument.getStartFunction(); }
+    public String getStartFunction() {
+        return fDocument.getStartFunction();
+    }
 
     /**
      * Sets the name of the function that should be called to start the
      * execution of a job
-     * @param  startFunction   the name of the starting function for a job
+     *
+     * @param startFunction the name of the starting function for a job
      */
-    public void setStartFunction(String startFunction)
-    { fDocument.setStartFunction(startFunction); }
+    public void setStartFunction(String startFunction) {
+        fDocument.setStartFunction(startFunction);
+    }
 
-    public String getStartFuncArgs() { return fDocument.getStartFunctionArgs(); }
+    public String getStartFuncArgs() {
+        return fDocument.getStartFunctionArgs();
+    }
 
-    public void setStartFuncArgs(String startFuncArgs)
-    { fDocument.setStartFuncArgs(startFuncArgs); }
+    public void setStartFuncArgs(String startFuncArgs) {
+        fDocument.setStartFuncArgs(startFuncArgs);
+    }
 
-    public void setExecuteAndHold(String holdTimeout)
-    { fExecuteAndHold = holdTimeout; }
+    public void setExecuteAndHold(String holdTimeout) {
+        fExecuteAndHold = holdTimeout;
+    }
 
     // Sets the value of the FUNCTION option on a STAX EXECUTE request
-    public void setStartFunctionOverride(String startFunction)
-    { fStartFunction = startFunction; }
+    public void setStartFunctionOverride(String startFunction) {
+        fStartFunction = startFunction;
+    }
 
-    public String getStartFunctionOverride() { return fStartFunction; }
-    
+    public String getStartFunctionOverride() {
+        return fStartFunction;
+    }
+
     // Sets the value of the ARGS option on a STAX EXECUTE request
-    public void setStartFuncArgsOverride(String startFuncArgs)
-    { fStartFuncArgs = startFuncArgs; }
+    public void setStartFuncArgsOverride(String startFuncArgs) {
+        fStartFuncArgs = startFuncArgs;
+    }
 
-    public String getStartFuncArgsOverride() { return fStartFuncArgs; }
+    public String getStartFuncArgsOverride() {
+        return fStartFuncArgs;
+    }
 
-    public String getJobName() { return fJobName; }
+    public String getJobName() {
+        return fJobName;
+    }
 
-    public void setJobName(String jobName) { fJobName = jobName; }
+    public void setJobName(String jobName) {
+        fJobName = jobName;
+    }
 
-    public int getJobNumber() { return fJobNumber; }
+    public int getJobNumber() {
+        return fJobNumber;
+    }
 
-    public void setJobNumber(int jobNumber) { fJobNumber = jobNumber; }
-    
-    public int getNextProcNumber()
-    {
-        synchronized (fNextProcNumberSynch)
-        { 
+    public void setJobNumber(int jobNumber) {
+        fJobNumber = jobNumber;
+    }
+
+    public int getNextProcNumber() {
+        synchronized (fNextProcNumberSynch) {
             return fProcNumber++;
         }
     }
-    
-    public int getNextCmdNumber()
-    {
-        synchronized (fNextCmdNumberSynch)
-        {
+
+    public int getNextCmdNumber() {
+        synchronized (fNextCmdNumberSynch) {
             return fCmdNumber++;
         }
     }
 
-    public int getNextProcessKey()
-    {
-        synchronized (fNextProcessKeySynch)
-        {
+    public int getNextProcessKey() {
+        synchronized (fNextProcessKeySynch) {
             return fProcessKey++;
         }
     }
-    public String getJobDataDir() { return fJobDataDir; }
 
-    public void setJobDataDir(String jobDataDir) { fJobDataDir = jobDataDir; }
-    
-    public String getXmlMachine() { return fXmlMachine; }
+    public String getJobDataDir() {
+        return fJobDataDir;
+    }
 
-    public void setXmlMachine(String machName) 
-    { fXmlMachine = machName; }
+    public void setJobDataDir(String jobDataDir) {
+        fJobDataDir = jobDataDir;
+    }
 
-    public String getXmlFile() { return fXmlFile; }
+    public String getXmlMachine() {
+        return fXmlMachine;
+    }
 
-    public void setXmlFile(String fileName) { fXmlFile = fileName; }
+    public void setXmlMachine(String machName) {
+        fXmlMachine = machName;
+    }
 
-    public List<String> getScripts() { return fScripts; }
+    public String getXmlFile() {
+        return fXmlFile;
+    }
 
-    public void setScript(String script) { fScripts.add(script); }
+    public void setXmlFile(String fileName) {
+        fXmlFile = fileName;
+    }
 
-    public List<String> getScriptFiles() { return fScriptFiles; }
+    public List<String> getScripts() {
+        return fScripts;
+    }
 
-    public void setScriptFile(String fileName) { fScriptFiles.add(fileName); }
-    
-    public String getScriptFileMachine() { return fScriptFileMachine; }
+    public void setScript(String script) {
+        fScripts.add(script);
+    }
 
-    public void setScriptFileMachine(String machName) 
-    { fScriptFileMachine = machName; }
+    public List<String> getScriptFiles() {
+        return fScriptFiles;
+    }
 
-    public String getSourceMachine() { return fSourceMachine; }
+    public void setScriptFile(String fileName) {
+        fScriptFiles.add(fileName);
+    }
 
-    public void setSourceMachine(String machName) 
-    { fSourceMachine = machName; }
+    public String getScriptFileMachine() {
+        return fScriptFileMachine;
+    }
 
-    public String getSourceHandleName() { return fSourceHandleName; }
+    public void setScriptFileMachine(String machName) {
+        fScriptFileMachine = machName;
+    }
 
-    public void setSourceHandleName(String handleName) 
-    { fSourceHandleName = handleName; }
+    public String getSourceMachine() {
+        return fSourceMachine;
+    }
 
-    public int getSourceHandle() { return fSourceHandle; }
+    public void setSourceMachine(String machName) {
+        fSourceMachine = machName;
+    }
 
-    public void setSourceHandle(int handle) 
-    { fSourceHandle = handle; }
+    public String getSourceHandleName() {
+        return fSourceHandleName;
+    }
 
-    public boolean getClearlogs() { return fClearlogs; }
+    public void setSourceHandleName(String handleName) {
+        fSourceHandleName = handleName;
+    }
 
-    public String getClearLogsAsString()
-    {
+    public int getSourceHandle() {
+        return fSourceHandle;
+    }
+
+    public void setSourceHandle(int handle) {
+        fSourceHandle = handle;
+    }
+
+    public boolean getClearlogs() {
+        return fClearlogs;
+    }
+
+    public String getClearLogsAsString() {
         if (fClearlogs)
             return "Enabled";
         else
             return "Disabled";
     }
 
-    public void setClearlogs(boolean clearlogs) 
-    { fClearlogs = clearlogs; }
+    public void setClearlogs(boolean clearlogs) {
+        fClearlogs = clearlogs;
+    }
 
-    public int getMaxSTAXThreads() { return fMaxSTAXThreads; }
+    public int getMaxSTAXThreads() {
+        return fMaxSTAXThreads;
+    }
 
-    public String getWaitTimeout() { return fWaitTimeout; }
-    
-    public void setWaitTimeout(String timeout)
-    { fWaitTimeout = timeout; }
+    public String getWaitTimeout() {
+        return fWaitTimeout;
+    }
 
-    public int getNotifyOnEnd() { return fNotifyOnEnd; }
+    public void setWaitTimeout(String timeout) {
+        fWaitTimeout = timeout;
+    }
 
-    public String getNotifyOnEndAsString()
-    {
+    public int getNotifyOnEnd() {
+        return fNotifyOnEnd;
+    }
+
+    public String getNotifyOnEndAsString() {
         if (fNotifyOnEnd == STAXJob.NOTIFY_ONEND_BY_NAME)
             return "By Name";
         else if (fNotifyOnEnd == STAXJob.NOTIFY_ONEND_BY_HANDLE)
             return "By Handle";
-        else 
+        else
             return "No";
     }
 
-    public void setNotifyOnEnd(int notifyFlag) { fNotifyOnEnd = notifyFlag; }
-    
-    public int getState() { return fState; }
-    
-    public String getStateAsString()
-    {
+    public void setNotifyOnEnd(int notifyFlag) {
+        fNotifyOnEnd = notifyFlag;
+    }
+
+    public int getState() {
+        return fState;
+    }
+
+    public String getStateAsString() {
         if (fState == PENDING_STATE)
             return PENDING_STATE_STRING;
         else
             return RUNNING_STATE_STRING;
     }
 
-    public void setState(int state) { fState = state; }
-    
-    public PyObject getResult() { return fResult; }
+    public void setState(int state) {
+        fState = state;
+    }
 
-    public void setResult(PyObject result) 
-    { fResult = result; }
+    public PyObject getResult() {
+        return fResult;
+    }
 
-    public int getCompletionStatus() { return fCompletionStatus; }
+    public void setResult(PyObject result) {
+        fResult = result;
+    }
 
-    public String getCompletionStatusAsString()
-    {
+    public int getCompletionStatus() {
+        return fCompletionStatus;
+    }
+
+    public String getCompletionStatusAsString() {
         if (fCompletionStatus == STAXJob.NORMAL_STATUS)
             return STAXJob.NORMAL_STATUS_STRING;
         else if (fCompletionStatus == STAXJob.TERMINATED_STATUS)
@@ -337,239 +404,230 @@ public class STAXJob implements STAXThreadCompleteListener,
             return STAXJob.UNKNOWN_STATUS_STRING;
     }
 
-    public void setCompletionStatus(int status)
-    {
+    public void setCompletionStatus(int status) {
         fCompletionStatus = status;
     }
-    
-    public STAFMarshallingContext getJobLogErrorsMC()
-    {
+
+    public STAFMarshallingContext getJobLogErrorsMC() {
         return fJobLogErrorsMC;
     }
 
-    public List<Map<String, Object>> getTestcaseList() { return fTestcaseList; }
+    public List<Map<String, Object>> getTestcaseList() {
+        return fTestcaseList;
+    }
 
-    public void setTestcaseList(List<Map<String, Object>> testcaseList)
-    { fTestcaseList = testcaseList; }
+    public void setTestcaseList(List<Map<String, Object>> testcaseList) {
+        fTestcaseList = testcaseList;
+    }
 
-    public Map<String, String> getTestcaseTotalsMap()
-    { return fTestcaseTotalsMap; }
+    public Map<String, String> getTestcaseTotalsMap() {
+        return fTestcaseTotalsMap;
+    }
 
-    public void setTestcaseTotalsMap(Map<String, String> testcaseTotalsMap)
-    { fTestcaseTotalsMap = testcaseTotalsMap; }
+    public void setTestcaseTotalsMap(Map<String, String> testcaseTotalsMap) {
+        fTestcaseTotalsMap = testcaseTotalsMap;
+    }
 
-    public STAXTimestamp getStartTimestamp() { return fStartTimestamp; }
-    
-    public void setStartTimestamp()
-    {
+    public STAXTimestamp getStartTimestamp() {
+        return fStartTimestamp;
+    }
+
+    public void setStartTimestamp() {
         // Get the current date and time and set as the starting date/time
         fStartTimestamp = new STAXTimestamp();
     }
-    
-    public STAXTimestamp getEndTimestamp() { return fEndTimestamp; }
-    
-    public Integer getJobNumberAsInteger() { return new Integer(fJobNumber); }
 
-    public STAFHandle getSTAFHandle() { return fHandle; }
+    public STAXTimestamp getEndTimestamp() {
+        return fEndTimestamp;
+    }
 
-    public void setSTAFHandle() throws STAFException
-    {
+    public Integer getJobNumberAsInteger() {
+        return new Integer(fJobNumber);
+    }
+
+    public STAFHandle getSTAFHandle() {
+        return fHandle;
+    }
+
+    public void setSTAFHandle() throws STAFException {
         fHandle = new STAFHandle("STAX/Job/" + fJobNumber);
     }
 
-    public boolean getLogTCElapsedTime() { return fLogTCElapsedTime; }
+    public boolean getLogTCElapsedTime() {
+        return fLogTCElapsedTime;
+    }
 
-    public String getLogTCElapsedTimeAsString()
-    {
+    public String getLogTCElapsedTimeAsString() {
         if (fLogTCElapsedTime)
             return "Enabled";
         else
             return "Disabled";
     }
 
-    public void setLogTCElapsedTime(boolean logTCElapsedTime)
-    { fLogTCElapsedTime = logTCElapsedTime; }
+    public void setLogTCElapsedTime(boolean logTCElapsedTime) {
+        fLogTCElapsedTime = logTCElapsedTime;
+    }
 
-    public boolean getLogTCNumStarts() { return fLogTCNumStarts; }
+    public boolean getLogTCNumStarts() {
+        return fLogTCNumStarts;
+    }
 
-    public String getLogTCNumStartsAsString()
-    {
+    public String getLogTCNumStartsAsString() {
         if (fLogTCNumStarts)
             return "Enabled";
         else
             return "Disabled";
     }
 
-    public void setLogTCNumStarts(boolean logTCNumStarts)
-    { fLogTCNumStarts = logTCNumStarts; }
+    public void setLogTCNumStarts(boolean logTCNumStarts) {
+        fLogTCNumStarts = logTCNumStarts;
+    }
 
-    public boolean getLogTCStartStop() { return fLogTCStartStop; }
-    
-    public String getLogTCStartStopAsString()
-    {
+    public boolean getLogTCStartStop() {
+        return fLogTCStartStop;
+    }
+
+    public String getLogTCStartStopAsString() {
         if (fLogTCStartStop)
             return "Enabled";
         else
             return "Disabled";
     }
-    
-    public void setLogTCStartStop(boolean logTCStartStop)
-    { fLogTCStartStop = logTCStartStop; }
 
-    public int getPythonOutput() { return fPythonOutput; }
-
-    public void setPythonOutput(int pythonOutput)
-    {
-        fPythonOutput = pythonOutput;   
+    public void setLogTCStartStop(boolean logTCStartStop) {
+        fLogTCStartStop = logTCStartStop;
     }
 
-    public String getPythonLogLevel() { return fPythonLogLevel; }
-    
-    public void setPythonLogLevel(String logLevel)
-    {
+    public int getPythonOutput() {
+        return fPythonOutput;
+    }
+
+    public void setPythonOutput(int pythonOutput) {
+        fPythonOutput = pythonOutput;
+    }
+
+    public String getPythonLogLevel() {
+        return fPythonLogLevel;
+    }
+
+    public void setPythonLogLevel(String logLevel) {
         fPythonLogLevel = logLevel;
     }
 
-    public int getInvalidLogLevelAction() { return fInvalidLogLevelAction; }
-    
-    public void setInvalidLogLevelAction(int action)
-    {
+    public int getInvalidLogLevelAction() {
+        return fInvalidLogLevelAction;
+    }
+
+    public void setInvalidLogLevelAction(int action) {
         fInvalidLogLevelAction = action;
     }
-    
-    public int getNumThreads()
-    {
+
+    public int getNumThreads() {
         return fThreadMap.size();
     }
 
-    public Map<Integer, STAXThread> getThreadMapCopy()
-    {
+    public Map<Integer, STAXThread> getThreadMapCopy() {
         return fThreadMap;
     }
 
-    public STAXThread getThread(Integer threadNumber)
-    {
-        synchronized (fThreadMap)
-        {
+    public STAXThread getThread(Integer threadNumber) {
+        synchronized (fThreadMap) {
             return fThreadMap.get(threadNumber);
         }
     }
 
-    public void addThread(STAXThread thread)
-    {
-        synchronized (fThreadMap)
-        {
+    public void addThread(STAXThread thread) {
+        synchronized (fThreadMap) {
             fThreadMap.put(thread.getThreadNumberAsInteger(), thread);
         }
     }
 
     public void addThreadIfDoesNotExceedMax(STAXThread thread)
-        throws STAXExceedsMaxThreadsException
-    {
-        synchronized (fThreadMap)
-        {
+            throws STAXExceedsMaxThreadsException {
+        synchronized (fThreadMap) {
             if ((fMaxSTAXThreads != 0) &&
-                (fThreadMap.size() >= fMaxSTAXThreads))
-            {
+                    (fThreadMap.size() >= fMaxSTAXThreads)) {
                 throw new STAXExceedsMaxThreadsException(
-                    "Exceeded MaxSTAXThreads=" + fMaxSTAXThreads +
-                    " (the maximum number of STAX Threads that " +
-                    "can be running simultaneously in a job).");
+                        "Exceeded MaxSTAXThreads=" + fMaxSTAXThreads +
+                                " (the maximum number of STAX Threads that " +
+                                "can be running simultaneously in a job).");
             }
 
             fThreadMap.put(thread.getThreadNumberAsInteger(), thread);
         }
     }
 
-    public void removeThread(Integer threadNumber)
-    {
-        synchronized (fThreadMap)
-        {
+    public void removeThread(Integer threadNumber) {
+        synchronized (fThreadMap) {
             fThreadMap.remove(threadNumber);
         }
     }
 
-    public STAXTimedEventQueue getTimedEventQueue()
-    {
+    public STAXTimedEventQueue getTimedEventQueue() {
         if (fSTAX.getTimedEventQueuePerJob())
             return fTimedEventQueue;
         else
             return fSTAX.getTimedEventQueue();
     }
 
-    public void addFunction(STAXFunctionAction function)
-    {
+    public void addFunction(STAXFunctionAction function) {
         fDocument.addFunction(function);
     }
 
-    public STAXAction getFunction(String name)
-    {
+    public STAXAction getFunction(String name) {
         return fDocument.getFunction(name);
     }
 
-    public boolean getBreakpointFirstFunction()
-    {
+    public boolean getBreakpointFirstFunction() {
         return fBreakpointFirstFunction;
     }
 
-    public void setBreakpointFirstFunction(boolean breakpointFirstFunction)
-    {
+    public void setBreakpointFirstFunction(boolean breakpointFirstFunction) {
         fBreakpointFirstFunction = breakpointFirstFunction;
     }
 
-    public boolean getBreakpointSubjobFirstFunction()
-    {
+    public boolean getBreakpointSubjobFirstFunction() {
         return fBreakpointSubjobFirstFunction;
     }
 
     public void setBreakpointSubjobFirstFunction(
-                    boolean breakpointSubjobFirstFunction)
-    {
+            boolean breakpointSubjobFirstFunction) {
         fBreakpointSubjobFirstFunction = breakpointSubjobFirstFunction;
     }
 
-    public boolean functionExists(String name)
-    {
+    public boolean functionExists(String name) {
         return fDocument.functionExists(name);
     }
 
-    public void addDefaultAction(STAXAction action)
-    {
+    public void addDefaultAction(STAXAction action) {
         fDocument.addDefaultAction(action);
     }
 
-    public void addCompletionNotifiee(STAXJobCompleteListener listener)
-    {
-        synchronized (fCompletionNotifiees)
-        {
+    public void addCompletionNotifiee(STAXJobCompleteListener listener) {
+        synchronized (fCompletionNotifiees) {
             fCompletionNotifiees.addLast(listener);
         }
     }
 
-    public STAFResult addCompletionNotifiee2(STAXJobCompleteNotifiee notifiee)
-    {
-        synchronized (fCompletionNotifiees)
-        {
+    public STAFResult addCompletionNotifiee2(STAXJobCompleteNotifiee notifiee) {
+        synchronized (fCompletionNotifiees) {
             // Check if the notifiee is already in the list
 
-            for (STAXJobCompleteListener listener : fCompletionNotifiees)
-            {
+            for (STAXJobCompleteListener listener : fCompletionNotifiees) {
                 if (listener instanceof
-                    com.ibm.staf.service.stax.STAXJobCompleteNotifiee)
-                {
+                        com.ibm.staf.service.stax.STAXJobCompleteNotifiee) {
                     STAXJobCompleteNotifiee aNotifiee =
-                        (STAXJobCompleteNotifiee)listener;
+                            (STAXJobCompleteNotifiee) listener;
 
                     if (aNotifiee.getMachine().equals(notifiee.getMachine()) &&
-                        aNotifiee.getHandle() == notifiee.getHandle() &&
-                        aNotifiee.getHandleName().equals(notifiee.getHandleName()))
-                    {
+                            aNotifiee.getHandle() == notifiee.getHandle() &&
+                            aNotifiee.getHandleName().equals(notifiee.getHandleName())) {
                         return new STAFResult(
-                            STAFResult.AlreadyExists,
-                            "A notifiee is already registered for machine=" +
-                            notifiee.getMachine() +
-                            ", handle=" + notifiee.getHandle() +
-                            ", handleName=" + notifiee.getHandleName());
+                                STAFResult.AlreadyExists,
+                                "A notifiee is already registered for machine=" +
+                                        notifiee.getMachine() +
+                                        ", handle=" + notifiee.getHandle() +
+                                        ", handleName=" + notifiee.getHandleName());
                     }
                 }
 
@@ -583,31 +641,26 @@ public class STAXJob implements STAXThreadCompleteListener,
         return new STAFResult(STAFResult.Ok, "");
     }
 
-    public STAFResult removeCompletionNotifiee(STAXJobCompleteNotifiee notifiee)
-    {
+    public STAFResult removeCompletionNotifiee(STAXJobCompleteNotifiee notifiee) {
         boolean found = false;
 
-        synchronized (fCompletionNotifiees)
-        {
+        synchronized (fCompletionNotifiees) {
             // Check if notifiee exists.  If so, remove the notifiee
 
             Iterator<STAXJobCompleteListener> iter =
-                fCompletionNotifiees.iterator();
+                    fCompletionNotifiees.iterator();
 
-            while (iter.hasNext())
-            {
+            while (iter.hasNext()) {
                 STAXJobCompleteListener listener = iter.next();
 
                 if (listener instanceof
-                    com.ibm.staf.service.stax.STAXJobCompleteNotifiee)
-                {
+                        com.ibm.staf.service.stax.STAXJobCompleteNotifiee) {
                     STAXJobCompleteNotifiee aNotifiee =
-                        (STAXJobCompleteNotifiee)listener;
-                
+                            (STAXJobCompleteNotifiee) listener;
+
                     if (aNotifiee.getMachine().equals(notifiee.getMachine()) &&
-                        aNotifiee.getHandle() == notifiee.getHandle() &&
-                        aNotifiee.getHandleName().equals(notifiee.getHandleName()))
-                    {
+                            aNotifiee.getHandle() == notifiee.getHandle() &&
+                            aNotifiee.getHandleName().equals(notifiee.getHandleName())) {
                         // Remove notifiee from list
 
                         fCompletionNotifiees.remove(aNotifiee);
@@ -617,20 +670,18 @@ public class STAXJob implements STAXThreadCompleteListener,
                 }
             }
         }
-                
+
         return new STAFResult(
-            STAFResult.DoesNotExist,
-            "No notifiee registered for machine=" + notifiee.getMachine() +
-            ", handle=" + notifiee.getHandle() +
-            ", handleName=" + notifiee.getHandleName());
+                STAFResult.DoesNotExist,
+                "No notifiee registered for machine=" + notifiee.getMachine() +
+                        ", handle=" + notifiee.getHandle() +
+                        ", handleName=" + notifiee.getHandleName());
     }
 
-    public LinkedList<STAXJobCompleteListener> getCompletionNotifiees()
-    {
-        synchronized(fCompletionNotifiees)
-        {
+    public LinkedList<STAXJobCompleteListener> getCompletionNotifiees() {
+        synchronized (fCompletionNotifiees) {
             return new LinkedList<STAXJobCompleteListener>
-                (fCompletionNotifiees);
+                    (fCompletionNotifiees);
         }
     }
 
@@ -646,18 +697,14 @@ public class STAXJob implements STAXThreadCompleteListener,
     //  - kind:        is either 'exec' if the string is made up of
     //                 statements, 'eval' if it is an expression.
 
-    public PyCode getCompiledPyCode(String codeString, String kind)
-    {
-        synchronized(fCompiledPyCodeCache)
-        {
+    public PyCode getCompiledPyCode(String codeString, String kind) {
+        synchronized (fCompiledPyCodeCache) {
             PyCode codeObject = fCompiledPyCodeCache.get(codeString);
 
-            if (codeObject == null)
-            {
+            if (codeObject == null) {
                 if (COUNT_PYCODE_CACHES) fCompiledPyCodeCacheAdds++;
 
-                if (kind.equals("eval"))
-                {
+                if (kind.equals("eval")) {
                     // Set to avoid error of setting code object to nothing
                     if (codeString.equals("")) codeString = "None";
                 
@@ -668,50 +715,43 @@ public class STAXJob implements STAXThreadCompleteListener,
                     */
                     // Jython 2.5:
                     codeObject = Py.compile_flags(
-                        codeString, "<pyEval string>",
-                        CompileMode.eval,
-                        Py.getCompilerFlags().combine(
-                            CompilerFlags.PyCF_SOURCE_IS_UTF8));
-                }
-                else
-                {
+                            codeString, "<pyEval string>",
+                            CompileMode.eval,
+                            Py.getCompilerFlags().combine(
+                                    CompilerFlags.PyCF_SOURCE_IS_UTF8));
+                } else {
                     /* Jython 2.1:
                     codeObject = __builtin__.compile(
                         codeString, "<pyExec string>", "exec");
                     */
                     // Jython 2.5:
                     codeObject = Py.compile_flags(
-                        codeString, "<pyExec string>",
-                        CompileMode.exec,
-                        Py.getCompilerFlags().combine(
-                            CompilerFlags.PyCF_SOURCE_IS_UTF8));
+                            codeString, "<pyExec string>",
+                            CompileMode.exec,
+                            Py.getCompilerFlags().combine(
+                                    CompilerFlags.PyCF_SOURCE_IS_UTF8));
                 }
 
                 fCompiledPyCodeCache.put(codeString, codeObject);
-            }
-            else
-            {
+            } else {
                 if (COUNT_PYCODE_CACHES) fCompiledPyCodeCacheGets++;
             }
-        
+
             return codeObject;
         }
     }
-    
+
     // Queue listener methods
 
-    public void registerSTAFQueueListener(String msgType, 
-                                          STAXSTAFQueueListener listener)
-    {
-        synchronized (fQueueListenerMap)
-        {
+    public void registerSTAFQueueListener(String msgType,
+                                          STAXSTAFQueueListener listener) {
+        synchronized (fQueueListenerMap) {
             TreeSet<STAXSTAFQueueListener> listenerSet =
-                fQueueListenerMap.get(msgType);
+                    fQueueListenerMap.get(msgType);
 
-            if (listenerSet == null)
-            {
+            if (listenerSet == null) {
                 listenerSet = new TreeSet<STAXSTAFQueueListener>(
-                    new STAXSTAFQueueListenerComparator());
+                        new STAXSTAFQueueListenerComparator());
                 fQueueListenerMap.put(msgType, listenerSet);
             }
 
@@ -719,13 +759,11 @@ public class STAXJob implements STAXThreadCompleteListener,
         }
     }
 
-    public void unregisterSTAFQueueListener(String msgType, 
-                                            STAXSTAFQueueListener listener)
-    {
-        synchronized (fQueueListenerMap)
-        {
+    public void unregisterSTAFQueueListener(String msgType,
+                                            STAXSTAFQueueListener listener) {
+        synchronized (fQueueListenerMap) {
             TreeSet<STAXSTAFQueueListener> listenerSet =
-                fQueueListenerMap.get(msgType);
+                    fQueueListenerMap.get(msgType);
 
             if (listenerSet != null)
                 listenerSet.remove(listener);
@@ -736,14 +774,11 @@ public class STAXJob implements STAXThreadCompleteListener,
     // Data management functions
     //
 
-    public boolean setData(String dataName, Object data)
-    {
+    public boolean setData(String dataName, Object data) {
         // Return true if added successfully, else return false.
 
-        synchronized (fDataMap)
-        {
-            if (!fDataMap.containsKey(dataName))
-            {
+        synchronized (fDataMap) {
+            if (!fDataMap.containsKey(dataName)) {
                 fDataMap.put(dataName, data);
                 return true;
             }
@@ -751,21 +786,18 @@ public class STAXJob implements STAXThreadCompleteListener,
 
         return false;
     }
- 
-    public Object getData(String dataName)
-    {
-        synchronized (fDataMap)
-        { return fDataMap.get(dataName); }
+
+    public Object getData(String dataName) {
+        synchronized (fDataMap) {
+            return fDataMap.get(dataName);
+        }
     }
 
-    public boolean removeData(String dataName)
-    {
+    public boolean removeData(String dataName) {
         // Return true if removed successfully, else return false.
 
-        synchronized (fDataMap)
-        {
-            if (fDataMap.containsKey(dataName))
-            {
+        synchronized (fDataMap) {
+            if (fDataMap.containsKey(dataName)) {
                 fDataMap.remove(dataName);
                 return true;
             }
@@ -778,33 +810,29 @@ public class STAXJob implements STAXThreadCompleteListener,
     // Execution methods
     //
 
-    public void startExecution() 
-        throws STAFException, STAXException
-    {
+    public void startExecution()
+            throws STAFException, STAXException {
         // Check if the MAXRETURNFILESIZE setting is not 0 (no maximum size
         // limit) and if so, set variable STAF/MaxReturnFileSize for the STAX
         // job handle
 
-        if (fSTAX.getMaxReturnFileSize() != 0)
-        {
+        if (fSTAX.getMaxReturnFileSize() != 0) {
             String request = "SET VAR " + STAFUtil.wrapData(
-                "STAF/MaxReturnFileSize=" + fSTAX.getMaxReturnFileSize());
+                    "STAF/MaxReturnFileSize=" + fSTAX.getMaxReturnFileSize());
 
             STAFResult result = fHandle.submit2("local", "VAR", request);
 
-            if (result.rc != STAFResult.Ok)
-            {
+            if (result.rc != STAFResult.Ok) {
                 String msg = "The STAX service could not set the maximum " +
-                    "file size variable for Job ID " + fJobNumber +
-                    "\nSTAF local VAR " + request + " failed with RC=" +
-                    result.rc + ", Result=" + result.result;
+                        "file size variable for Job ID " + fJobNumber +
+                        "\nSTAF local VAR " + request + " failed with RC=" +
+                        result.rc + ", Result=" + result.result;
 
                 log(STAXJob.JOB_LOG, "error", msg);
             }
         }
 
-        if (fSTAX.getTimedEventQueuePerJob())
-        {
+        if (fSTAX.getTimedEventQueuePerJob()) {
             // Create a STAXTimedEventQueue thread for this job and start it
             fTimedEventQueue = new STAXTimedEventQueue();
         }
@@ -814,13 +842,11 @@ public class STAXJob implements STAXThreadCompleteListener,
 
         // Initialize data for the Job
 
-        fSTAX.visitJobManagementHandlers(new STAXVisitorHelper(this)
-        {
-            public void visit(Object o, Iterator iter)
-            {
-                STAXJobManagementHandler handler = (STAXJobManagementHandler)o;
+        fSTAX.visitJobManagementHandlers(new STAXVisitorHelper(this) {
+            public void visit(Object o, Iterator iter) {
+                STAXJobManagementHandler handler = (STAXJobManagementHandler) o;
 
-                handler.initJob((STAXJob)fData);
+                handler.initJob((STAXJob) fData);
             }
         });
 
@@ -831,7 +857,7 @@ public class STAXJob implements STAXThreadCompleteListener,
         // Get the main thread, thread 1
 
         STAXThread thread = fThreadMap.get(new Integer(1));
-        
+
         // Use a custom OutputStream to redirect the Python Interpreter's
         // stdout and stderr to somewhere other than the JVM Log and/or
         // to reformat the output (e.g. add a timestamp, job ID) when
@@ -846,35 +872,29 @@ public class STAXJob implements STAXThreadCompleteListener,
         // Get the starting function for the job
 
         STAXAction action = fDocument.getFunction(
-            fDocument.getStartFunction());
+                fDocument.getStartFunction());
 
-        if (action == null)
-        {
+        if (action == null) {
             throw new STAXInvalidStartFunctionException(
-                "'" + fDocument.getStartFunction() +
-                "' is not a valid function name.  No function with " +
-                "this name is defined.");
-        }
-        else
-        {
+                    "'" + fDocument.getStartFunction() +
+                            "' is not a valid function name.  No function with " +
+                            "this name is defined.");
+        } else {
             // Call the main function passing any arguments
 
             String startFunctionUneval = "'" + fDocument.getStartFunction() +
-                "'";
+                    "'";
 
-            if (fDefaultCallAction != null)
-            {
+            if (fDefaultCallAction != null) {
                 STAXCallAction callAction = fDefaultCallAction;
                 callAction.setFunction(startFunctionUneval);
                 callAction.setArgs(fDocument.getStartFunctionArgs());
                 action = callAction;
-            }
-            else
-            {
+            } else {
                 STAXCallAction callAction = new STAXCallAction(
-                    startFunctionUneval, fDocument.getStartFunctionArgs());
+                        startFunctionUneval, fDocument.getStartFunctionArgs());
                 callAction.setLineNumber(
-                    "<External>", "<Error in ARGS option>");
+                        "<External>", "<Error in ARGS option>");
                 callAction.setXmlFile(getXmlFile());
                 callAction.setXmlMachine(getXmlMachine());
                 action = callAction;
@@ -882,24 +902,20 @@ public class STAXJob implements STAXThreadCompleteListener,
         }
 
         ArrayList<STAXAction> actionList = new ArrayList<STAXAction>();
-        
+
         // If HOLD was specified on EXECUTE request, add hold action as
         // the first action in the actionList.
 
-        if (fExecuteAndHold != null)
-        {
-            if (fExecuteAndHold.length() == 0)
-            {
+        if (fExecuteAndHold != null) {
+            if (fExecuteAndHold.length() == 0) {
                 // Add a hold action with no timeout
 
                 actionList.add(new STAXHoldAction("'main'"));
-            }
-            else
-            {
+            } else {
                 // Add a hold action with a timeout
 
                 actionList.add(
-                    new STAXHoldAction("'main'", "1", fExecuteAndHold));
+                        new STAXHoldAction("'main'", "1", fExecuteAndHold));
             }
         }
 
@@ -914,9 +930,9 @@ public class STAXJob implements STAXThreadCompleteListener,
         thread.pySetVar("STAXJobSourceHandleName", fSourceHandleName);
         thread.pySetVar("STAXJobSourceHandle", new Integer(fSourceHandle));
         thread.pySetVar("STAXJobStartFunctionName",
-                        fDocument.getStartFunction());
+                fDocument.getStartFunction());
         thread.pySetVar("STAXJobStartFunctionArgs",
-                        fDocument.getStartFunctionArgs());
+                fDocument.getStartFunctionArgs());
         thread.pySetVar("STAXCurrentFunction", Py.None);
         thread.pySetVar("STAXCurrentXMLFile", fXmlFile);
         thread.pySetVar("STAXCurrentXMLMachine", fXmlMachine);
@@ -932,24 +948,24 @@ public class STAXJob implements STAXThreadCompleteListener,
         thread.pySetVar("STAXServiceName", fSTAX.getServiceName());
         thread.pySetVar("STAXServiceMachine", fSTAX.getLocalMachineName());
         thread.pySetVar("STAXServiceMachineNickname",
-                        fSTAX.getLocalMachineNickname());
+                fSTAX.getLocalMachineNickname());
         thread.pySetVar("STAXEventServiceName", fSTAX.getEventServiceName());
         thread.pySetVar("STAXEventServiceMachine",
-                        fSTAX.getEventServiceMachine());
+                fSTAX.getEventServiceMachine());
         thread.pySetVar("STAXServicePath", fSTAX.getServicePath());
 
         thread.pySetVar("STAXJobUserLog", new STAFLog(
-            STAFLog.MACHINE,
-            fSTAX.getServiceName().toUpperCase() + "_Job_" +
-            fJobNumber + "_User",
-            fHandle, 0));
+                STAFLog.MACHINE,
+                fSTAX.getServiceName().toUpperCase() + "_Job_" +
+                        fJobNumber + "_User",
+                fHandle, 0));
         thread.pySetVar("STAXJobLogName",
-                        fSTAX.getServiceName().toUpperCase() +
+                fSTAX.getServiceName().toUpperCase() +
                         "_Job_" + fJobNumber);
         thread.pySetVar("STAXJobUserLogName",
-                        fSTAX.getServiceName().toUpperCase() +
+                fSTAX.getServiceName().toUpperCase() +
                         "_Job_" + fJobNumber + "_User");
-        
+
         thread.pySetVar("STAXJobWriteLocation", fJobDataDir);
         thread.pySetVar("STAXMessageLog", new Integer(0));
         thread.pySetVar("STAXLogMessage", new Integer(0));
@@ -970,27 +986,26 @@ public class STAXJob implements STAXThreadCompleteListener,
             thread.pySetVar("STAXLogTCStartStop", new Integer(0));
 
         thread.pySetVar("STAXPythonOutput",
-                        STAXPythonOutput.getPythonOutputAsString(
-                            getPythonOutput()));
+                STAXPythonOutput.getPythonOutputAsString(
+                        getPythonOutput()));
 
         thread.pySetVar("STAXPythonLogLevel", getPythonLogLevel());
-        
+
         thread.pySetVar("STAXInvalidLogLevelAction",
-                        STAXLogAction.getInvalidLogLevelActionAsString(
-                            getInvalidLogLevelAction()));
- 
+                STAXLogAction.getInvalidLogLevelActionAsString(
+                        getInvalidLogLevelAction()));
+
         // Add default signal handlers to the actionList for the main block.
         addDefaultSignalHandlers(actionList);
-     
+
         // Put the "main" function/block at the bottom of the stack,
         // with its action being a sequence group that contains the
         // default actions (scripts and signalhandlers) in the <stax> 
         // element and then the call of the main function. 
-      
+
         LinkedList<STAXAction> defaultActions = fDocument.getDefaultActions();
-        
-        while (!defaultActions.isEmpty())
-        {
+
+        while (!defaultActions.isEmpty()) {
             actionList.add(defaultActions.removeLast());
         }
 
@@ -1003,7 +1018,7 @@ public class STAXJob implements STAXThreadCompleteListener,
         mainSequence.setXmlMachine(getXmlMachine());
 
         STAXActionDefaultImpl mainBlock = new STAXBlockAction(
-            "main", mainSequence);
+                "main", mainSequence);
         mainBlock.setLineNumber("block", "<Internal>");
         mainBlock.setXmlFile(getXmlFile());
         mainBlock.setXmlMachine(getXmlMachine());
@@ -1012,7 +1027,7 @@ public class STAXJob implements STAXThreadCompleteListener,
 
         // Change the job's state from pending to running
         fState = RUNNING_STATE;
-        
+
         // Generate the job is running event
 
         HashMap<String, String> jobRunningMap = new HashMap<String, String>();
@@ -1022,7 +1037,7 @@ public class STAXJob implements STAXThreadCompleteListener,
         jobRunningMap.put("startFunction", fDocument.getStartFunction());
         jobRunningMap.put("jobName", fJobName);
         jobRunningMap.put("startTimestamp",
-                          fStartTimestamp.getTimestampString());
+                fStartTimestamp.getTimestampString());
 
         generateEvent(STAXJob.STAX_JOB_EVENT, jobRunningMap, true);
 
@@ -1033,20 +1048,19 @@ public class STAXJob implements STAXThreadCompleteListener,
         // Schedule the thread to run 
         thread.schedule();
     }
-    
+
     /**
      * This is a recursive function that checks if a function needs to
      * import other xml files that contain functions it requires.
-     * 
+     * <p>
      * Checks if the specified function has any function-import sub-elements
      * that specify files to be imported.  If so, it parses the files (if not
      * already in the cache) and adds their required functions to the job's
      * fFunctionMap. For any new functions added to the job's fFunctionMap,
      * it recursively calls the addImportedFunctions method.
-     */ 
-    public void addImportedFunctions(STAXFunctionAction functionAction) 
-        throws STAFException, STAXException
-    {
+     */
+    public void addImportedFunctions(STAXFunctionAction functionAction)
+            throws STAFException, STAXException {
         List<STAXFunctionImport> importList = functionAction.getImportList();
 
         if (importList.size() == 0)
@@ -1057,8 +1071,7 @@ public class STAXJob implements STAXThreadCompleteListener,
         String evalElem = "function-import";
         int evalIndex = 0;
 
-        for (STAXFunctionImport functionImport : importList)
-        {
+        for (STAXFunctionImport functionImport : importList) {
             String machine = functionImport.getMachine();
             String file = functionImport.getFile();
             String directory = functionImport.getDirectory();
@@ -1070,41 +1083,36 @@ public class STAXJob implements STAXThreadCompleteListener,
 
             boolean machineSpecified = false;
 
-            if (machine != null)
-            {
+            if (machine != null) {
                 machineSpecified = true;
-                
+
                 // Check if "machine" contains any STAF variables
-                
-                if (machine.indexOf("{") != -1)
-                {
+
+                if (machine.indexOf("{") != -1) {
                     // Resolve variables on the local STAX service machine
 
                     STAFResult result = this.submitSync(
-                        "local", "VAR", "RESOLVE STRING " +
-                        STAFUtil.wrapData(machine));
+                            "local", "VAR", "RESOLVE STRING " +
+                                    STAFUtil.wrapData(machine));
 
-                    if (result.rc != STAFResult.Ok)
-                    {
+                    if (result.rc != STAFResult.Ok) {
                         String errorMsg = "Cause:  Error resolving STAF " +
-                            "variables in the \"machine\" attribute " +
-                            "for element type \" function-import\"," + 
-                            "\nRC: " + result.rc +
-                            ", Result: " + result.result;
+                                "variables in the \"machine\" attribute " +
+                                "for element type \" function-import\"," +
+                                "\nRC: " + result.rc +
+                                ", Result: " + result.result;
 
                         functionAction.setElementInfo(
-                            new STAXElementInfo(
-                                evalElem, "machine", evalIndex, errorMsg));
+                                new STAXElementInfo(
+                                        evalElem, "machine", evalIndex, errorMsg));
 
                         throw new STAXFunctionImportException(
-                            STAXUtil.formatErrorMessage(functionAction));
+                                STAXUtil.formatErrorMessage(functionAction));
                     }
 
                     machine = result.result;
                 }
-            }
-            else
-            {
+            } else {
                 machine = fXmlMachine;
             }
 
@@ -1113,34 +1121,31 @@ public class STAXJob implements STAXThreadCompleteListener,
             String evalAttr = "file";
             String unresValue = file;
 
-            if (directorySpecified)
-            {
+            if (directorySpecified) {
                 evalAttr = "directory";
                 unresValue = directory;
             }
-            
-            if (unresValue.indexOf("{") != -1)
-            {
+
+            if (unresValue.indexOf("{") != -1) {
                 // Resolve variables on the local STAX service machine
 
                 STAFResult result = this.submitSync(
-                    "local", "VAR", "RESOLVE STRING " +
-                    STAFUtil.wrapData(unresValue));
+                        "local", "VAR", "RESOLVE STRING " +
+                                STAFUtil.wrapData(unresValue));
 
-                if (result.rc != STAFResult.Ok)
-                {
+                if (result.rc != STAFResult.Ok) {
                     String errorMsg = "Cause:  Error resolving STAF " +
-                        "variables in the \"" + evalAttr + "\" attribute " +
-                        "for element type \"function-import\"." + 
-                        "\nRC: " + result.rc +
-                        ", Result: " + result.result;
+                            "variables in the \"" + evalAttr + "\" attribute " +
+                            "for element type \"function-import\"." +
+                            "\nRC: " + result.rc +
+                            ", Result: " + result.result;
 
                     functionAction.setElementInfo(
-                        new STAXElementInfo(
-                            evalElem, evalAttr, evalIndex, errorMsg));
+                            new STAXElementInfo(
+                                    evalElem, evalAttr, evalIndex, errorMsg));
 
                     throw new STAXFunctionImportException(
-                        STAXUtil.formatErrorMessage(functionAction));
+                            STAXUtil.formatErrorMessage(functionAction));
                 }
 
                 if (!directorySpecified)
@@ -1152,11 +1157,10 @@ public class STAXJob implements STAXThreadCompleteListener,
             // Handle any functions specified to be imported
 
             String functions = functionImport.getFunctions();
-            
+
             Vector<String> importedFunctionList = new Vector<String>();
 
-            if (functions != null)
-            {
+            if (functions != null) {
                 // Convert string containing a whitespace-separated list of
                 // functions to a vector.
                 //
@@ -1169,8 +1173,7 @@ public class STAXJob implements STAXThreadCompleteListener,
 
                 StringTokenizer st = new StringTokenizer(functions);
 
-                while (st.hasMoreTokens())
-                {
+                while (st.hasMoreTokens()) {
                     importedFunctionList.add(st.nextToken());
                 }
             }
@@ -1179,23 +1182,22 @@ public class STAXJob implements STAXThreadCompleteListener,
             // directory resides as this is needed to normalize the path name
             // and may also be needed to determine if its a relative file
             // name, and to get the parent directory.
-            
-            STAFResult result = STAXFileCache.getFileSep(
-                machine, this.getSTAX().getSTAFHandle());
 
-            if (result.rc != STAFResult.Ok)
-            {
+            STAFResult result = STAXFileCache.getFileSep(
+                    machine, this.getSTAX().getSTAFHandle());
+
+            if (result.rc != STAFResult.Ok) {
                 String errorMsg = "Cause:  No response from machine \"" +
-                    machine + "\" when trying to get the contents of a " +
-                    "file specified by element type \"function-import\"." +
-                    "\nRC: " + result.rc + ", Result: " + result.result;
+                        machine + "\" when trying to get the contents of a " +
+                        "file specified by element type \"function-import\"." +
+                        "\nRC: " + result.rc + ", Result: " + result.result;
 
                 functionAction.setElementInfo(
-                    new STAXElementInfo(
-                        evalElem, "machine", evalIndex, errorMsg));
+                        new STAXElementInfo(
+                                evalElem, "machine", evalIndex, errorMsg));
 
                 throw new STAXFunctionImportException(
-                    STAXUtil.formatErrorMessage(functionAction));
+                        STAXUtil.formatErrorMessage(functionAction));
             }
 
             String fileSep = result.result;
@@ -1206,8 +1208,7 @@ public class STAXJob implements STAXThreadCompleteListener,
 
             boolean caseSensitiveFileName = true;
 
-            if (fileSep.equals("\\"))
-            {
+            if (fileSep.equals("\\")) {
                 // Windows machine so not case-sensitive
 
                 caseSensitiveFileName = false;
@@ -1223,8 +1224,7 @@ public class STAXJob implements STAXThreadCompleteListener,
             // could be a relative file name so need to assign its absolute
             // file name
 
-            if (!machineSpecified)
-            {
+            if (!machineSpecified) {
                 // Check if a relative path was specified
 
                 String entry = file;
@@ -1232,34 +1232,32 @@ public class STAXJob implements STAXThreadCompleteListener,
                 if (directorySpecified)
                     entry = directory;
 
-                if (STAXUtil.isRelativePath(entry, fileSep))
-                {
+                if (STAXUtil.isRelativePath(entry, fileSep)) {
                     // Assign the absolute name assuming it is relative
                     // to the parent xml file's path
 
                     String currentFile = functionAction.getXmlFile();
-                    
-                    if (currentFile.equals(STAX.INLINE_DATA))
-                    {
+
+                    if (currentFile.equals(STAX.INLINE_DATA)) {
                         // Cannot specify a relative file path if the parent
                         // xml file is STAX.INLINE_DATA
 
                         String errorMsg = "Cause:  Cannot specify a " +
-                            "relative path in attribute \"" + evalAttr +
-                            "\" for element type \"function-import\" when " +
-                            "the parent xml file is " + STAX.INLINE_DATA;
+                                "relative path in attribute \"" + evalAttr +
+                                "\" for element type \"function-import\" when " +
+                                "the parent xml file is " + STAX.INLINE_DATA;
 
                         functionAction.setElementInfo(
-                            new STAXElementInfo(
-                                evalElem, STAXElementInfo.NO_ATTRIBUTE_NAME,
-                                evalIndex, errorMsg));
+                                new STAXElementInfo(
+                                        evalElem, STAXElementInfo.NO_ATTRIBUTE_NAME,
+                                        evalIndex, errorMsg));
 
                         throw new STAXFunctionImportException(
-                            STAXUtil.formatErrorMessage(functionAction));
+                                STAXUtil.formatErrorMessage(functionAction));
                     }
 
                     entry = STAXUtil.getParentPath(currentFile, fileSep) +
-                        entry;
+                            entry;
 
                     if (!directorySpecified)
                         file = entry;
@@ -1280,146 +1278,126 @@ public class STAXJob implements STAXThreadCompleteListener,
 
             STAXParser parser = null;
 
-            try
-            {
+            try {
                 parser = new STAXParser(getSTAX());
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 String errorMsg = ex.getClass().getName() + "\n" +
-                    ex.getMessage();
-                
+                        ex.getMessage();
+
                 functionAction.setElementInfo(
-                    new STAXElementInfo(
-                        evalElem, STAXElementInfo.NO_ATTRIBUTE_NAME,
-                        evalIndex, errorMsg));
+                        new STAXElementInfo(
+                                evalElem, STAXElementInfo.NO_ATTRIBUTE_NAME,
+                                evalIndex, errorMsg));
 
                 throw new STAXFunctionImportException(
-                    STAXUtil.formatErrorMessage(functionAction));
+                        STAXUtil.formatErrorMessage(functionAction));
             }
 
             // Create a list of files to process
 
             List<String> theFileList = new ArrayList<String>();
 
-            if (!directorySpecified)
-            {
+            if (!directorySpecified) {
                 // There will be just one file to process
 
                 theFileList.add(file);
-            }
-            else
-            {
+            } else {
                 // Submit a FS LIST DIRECTORY request for all *.xml files
                 // in the directory
 
                 result = submitSync(
-                    machine, "FS", "LIST DIRECTORY " +
-                    STAFUtil.wrapData(directory) +
-                    " TYPE F EXT xml CASEINSENSITIVE");
+                        machine, "FS", "LIST DIRECTORY " +
+                                STAFUtil.wrapData(directory) +
+                                " TYPE F EXT xml CASEINSENSITIVE");
 
-                if (result.rc != 0)           
-                {
+                if (result.rc != 0) {
                     evalAttr = STAXElementInfo.NO_ATTRIBUTE_NAME;
                     String errorMsg = "Cause:  ";
 
-                    if (result.rc == STAFResult.NoPathToMachine)
-                    {
+                    if (result.rc == STAFResult.NoPathToMachine) {
                         errorMsg = errorMsg + "No response from machine ";
                         evalAttr = "machine";
-                    }
-                    else
-                    {
+                    } else {
                         errorMsg = errorMsg + "Error ";
                     }
 
                     errorMsg = errorMsg + "when submitting a FS LIST " +
-                        "DIRECTORY request to list all *.xml files in the " +
-                        "directory specified by element type " +
-                        "\"function-import\":" +
-                        "\n  Directory: " + directory +
-                        "\n  Machine: " + machine +
-                        "\n\nRC: " + result.rc + ", Result: " + result.result;
+                            "DIRECTORY request to list all *.xml files in the " +
+                            "directory specified by element type " +
+                            "\"function-import\":" +
+                            "\n  Directory: " + directory +
+                            "\n  Machine: " + machine +
+                            "\n\nRC: " + result.rc + ", Result: " + result.result;
 
                     functionAction.setElementInfo(
-                        new STAXElementInfo(
-                            evalElem, evalAttr, evalIndex, errorMsg));
+                            new STAXElementInfo(
+                                    evalElem, evalAttr, evalIndex, errorMsg));
 
                     throw new STAXFunctionImportException(
-                        STAXUtil.formatErrorMessage(functionAction));
+                            STAXUtil.formatErrorMessage(functionAction));
                 }
 
-                Iterator fileIter = ((List)result.resultObj).iterator();
+                Iterator fileIter = ((List) result.resultObj).iterator();
 
-                while (fileIter.hasNext())
-                {
+                while (fileIter.hasNext()) {
                     theFileList.add(
-                        directory + fileSep + (String)fileIter.next());
+                            directory + fileSep + (String) fileIter.next());
                 }
             }
 
-            for (String fileName : theFileList)
-            {
+            for (String fileName : theFileList) {
                 Date dLastModified = null;
                 STAXJob job = null;
 
                 // If file caching is enabled, find the modification date of
                 // the file being imported
 
-                if (getSTAX().getFileCaching())
-                {
-                    if (STAXFileCache.get().isLocalMachine(machine))
-                    {
+                if (getSTAX().getFileCaching()) {
+                    if (STAXFileCache.get().isLocalMachine(machine)) {
                         File fileObj = new File(fileName);
 
                         // Make sure the file exists
 
-                        if (fileObj.exists())
-                        {
+                        if (fileObj.exists()) {
                             long lastModified = fileObj.lastModified();
 
-                            if (lastModified > 0)
-                            {
+                            if (lastModified > 0) {
                                 // Chop off the milliseconds because some
                                 // systems don't report modTime to milliseconds
 
-                                lastModified = ((long)(lastModified/1000))*1000;
+                                lastModified = ((long) (lastModified / 1000)) * 1000;
 
                                 dLastModified = new Date(lastModified);
                             }
                         }
                     }
 
-                    if (dLastModified == null)
-                    {
+                    if (dLastModified == null) {
                         // Find the remote file mod time using STAF
 
                         STAFResult entryResult = submitSync(
-                            machine, "FS", "GET ENTRY " +
-                            STAFUtil.wrapData(fileName) + " MODTIME");
+                                machine, "FS", "GET ENTRY " +
+                                        STAFUtil.wrapData(fileName) + " MODTIME");
 
-                        if (entryResult.rc == 0)
-                        {
+                        if (entryResult.rc == 0) {
                             String modDate = entryResult.result;
                             dLastModified = STAXFileCache.convertSTAXDate(
-                                modDate);
+                                    modDate);
                         }
                     }
 
                     // Check for an up-to-date file in the cache
 
                     if ((dLastModified != null) &&
-                        STAXFileCache.get().checkCache(
-                            machine, fileName, dLastModified,
-                            caseSensitiveFileName))
-                    {
+                            STAXFileCache.get().checkCache(
+                                    machine, fileName, dLastModified,
+                                    caseSensitiveFileName)) {
                         // Get the doc from cache
-                        
-                        STAXDocument doc = STAXFileCache.get().getDocument(
-                            machine, fileName, caseSensitiveFileName);
 
-                        if (doc != null)
-                        {
+                        STAXDocument doc = STAXFileCache.get().getDocument(
+                                machine, fileName, caseSensitiveFileName);
+
+                        if (doc != null) {
                             job = new STAXJob(getSTAX(), doc);
                         }
                     }
@@ -1427,122 +1405,109 @@ public class STAXJob implements STAXThreadCompleteListener,
 
                 // If the file was not in cache, then retrieve it using STAF
 
-                if (job == null)
-                {
+                if (job == null) {
                     result = submitSync(
-                        machine, "FS", "GET FILE " + STAFUtil.wrapData(
-                            fileName));
+                            machine, "FS", "GET FILE " + STAFUtil.wrapData(
+                                    fileName));
 
-                    if (result.rc != 0)           
-                    {
+                    if (result.rc != 0) {
                         evalAttr = STAXElementInfo.NO_ATTRIBUTE_NAME;
                         String errorMsg = "Cause:  ";
 
-                        if (result.rc == STAFResult.NoPathToMachine)
-                        {
+                        if (result.rc == STAFResult.NoPathToMachine) {
                             errorMsg = errorMsg + "No response from machine ";
                             evalAttr = "machine";
-                        }
-                        else
-                        {
+                        } else {
                             errorMsg = errorMsg + "Error ";
                         }
 
                         errorMsg = errorMsg + "when submitting a FS GET " +
-                            "request to get a file specified by element type " +
-                            "\"function-import\":" +
-                            "\n  File: " + fileName +
-                            "\n  Machine: " + machine +
-                            "\n\nRC: " + result.rc + ", Result: " + result.result;
+                                "request to get a file specified by element type " +
+                                "\"function-import\":" +
+                                "\n  File: " + fileName +
+                                "\n  Machine: " + machine +
+                                "\n\nRC: " + result.rc + ", Result: " + result.result;
 
                         functionAction.setElementInfo(
-                            new STAXElementInfo(
-                                evalElem, evalAttr, evalIndex, errorMsg));
+                                new STAXElementInfo(
+                                        evalElem, evalAttr, evalIndex, errorMsg));
 
                         throw new STAXFunctionImportException(
-                            STAXUtil.formatErrorMessage(functionAction));
+                                STAXUtil.formatErrorMessage(functionAction));
                     }
 
                     // Parse the XML document
 
-                    try
-                    {
+                    try {
                         job = parser.parse(result.result, fileName, machine);
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
                         String errorMsg = "Cause: " +
-                            ex.getClass().getName() + "\n";
+                                ex.getClass().getName() + "\n";
 
                         // Make sure that the error message contains the File:
                         // and Machine: where the error occurred
 
                         if (ex.getMessage().indexOf("File: ") == -1 ||
-                            ex.getMessage().indexOf("Machine: ") == -1)
-                        {
+                                ex.getMessage().indexOf("Machine: ") == -1) {
                             errorMsg = errorMsg + "\nFile: " + fileName +
-                                ", Machine: " + machine;
+                                    ", Machine: " + machine;
                         }
 
                         errorMsg = errorMsg + ex.getMessage();
-                        
+
                         functionAction.setElementInfo(
-                            new STAXElementInfo(
-                                evalElem, STAXElementInfo.NO_ATTRIBUTE_NAME,
-                                evalIndex, errorMsg));
+                                new STAXElementInfo(
+                                        evalElem, STAXElementInfo.NO_ATTRIBUTE_NAME,
+                                        evalIndex, errorMsg));
 
                         throw new STAXFunctionImportException(
-                            STAXUtil.formatErrorMessage(functionAction));
+                                STAXUtil.formatErrorMessage(functionAction));
                     }
 
                     // Add the XML document to the cache
 
-                    if (getSTAX().getFileCaching() && (dLastModified != null))
-                    {
+                    if (getSTAX().getFileCaching() && (dLastModified != null)) {
                         STAXFileCache.get().addDocument(
-                            machine, fileName, job.getSTAXDocument(),
-                            dLastModified, caseSensitiveFileName);
+                                machine, fileName, job.getSTAXDocument(),
+                                dLastModified, caseSensitiveFileName);
                     }
                 }
 
                 // Get a map of the functions in this xml file being imported
 
                 HashMap<String, STAXFunctionAction> functionMap =
-                    job.getSTAXDocument().getFunctionMap();
+                        job.getSTAXDocument().getFunctionMap();
 
                 // Verify that if function names were specified in the
                 // function-import element, verify that all the function names
                 // specified exist in the xml file
 
-                if (!importedFunctionList.isEmpty())
-                {
-                    for (String functionName : importedFunctionList)
-                    {
-                        if (!functionMap.containsKey(functionName))
-                        {
+                if (!importedFunctionList.isEmpty()) {
+                    for (String functionName : importedFunctionList) {
+                        if (!functionMap.containsKey(functionName)) {
                             // Function name specified in the function-import
                             // element's "functions" attribute does not exist
-                        
+
                             String errorMsg = "Cause:  Function \"" +
-                                functionName + "\" does not exist in file \"" +
-                                fileName + "\" on machine \"" + machine + "\".";
+                                    functionName + "\" does not exist in file \"" +
+                                    fileName + "\" on machine \"" + machine + "\".";
 
                             functionAction.setElementInfo(
-                                new STAXElementInfo(
-                                    evalElem, STAXElementInfo.NO_ATTRIBUTE_NAME,
-                                    evalIndex, errorMsg));
+                                    new STAXElementInfo(
+                                            evalElem, STAXElementInfo.NO_ATTRIBUTE_NAME,
+                                            evalIndex, errorMsg));
 
                             throw new STAXFunctionImportException(
-                                STAXUtil.formatErrorMessage(functionAction));
+                                    STAXUtil.formatErrorMessage(functionAction));
                         }
                     }
                 }
-            
+
                 // Create a set containing the functions requested to be
                 // imported.  If no functions were specifically requested to
                 // be imported, add all the functions in the xml file to the
                 // set.
-            
+
                 Set<String> functionSet;
 
                 if (importedFunctionList.isEmpty())
@@ -1557,30 +1522,27 @@ public class STAXJob implements STAXThreadCompleteListener,
 
                 Vector<String> requiredFunctionList = new Vector<String>();
 
-                for (String functionName : functionSet)
-                {
+                for (String functionName : functionSet) {
                     STAXFunctionAction function = functionMap.get(functionName);
 
                     // If this function does not exist, add the function to
                     // the job's fFunctionMap
 
-                    if (!(functionExists(functionName)))
-                    {
+                    if (!(functionExists(functionName))) {
                         // Add the function to the job's function map
 
                         this.addFunction(function);
-                    
+
                         // Check if this function requires any other functions
                         // and if so, add them to the list of required
                         // functions
 
                         StringTokenizer requiredFunctions =
-                            new StringTokenizer(function.getRequires(), " ");
+                                new StringTokenizer(function.getRequires(), " ");
 
-                        while (requiredFunctions.hasMoreTokens())
-                        {
+                        while (requiredFunctions.hasMoreTokens()) {
                             requiredFunctionList.add(
-                                requiredFunctions.nextToken());
+                                    requiredFunctions.nextToken());
                         }
 
                         // Recursive call to add functions this functions
@@ -1593,13 +1555,11 @@ public class STAXJob implements STAXThreadCompleteListener,
                 // Process required functions (functions that the imported
                 // functions also require)
 
-                for (int i = 0; i < requiredFunctionList.size(); i++)
-                {
+                for (int i = 0; i < requiredFunctionList.size(); i++) {
                     String functionName =
-                        (String)requiredFunctionList.elementAt(i);
+                            (String) requiredFunctionList.elementAt(i);
 
-                    if (!functionExists(functionName))
-                    {
+                    if (!functionExists(functionName)) {
                         addRequiredFunctions(functionName, functionMap);
                     }
                 }
@@ -1615,12 +1575,11 @@ public class STAXJob implements STAXThreadCompleteListener,
      * elements, it recursively adds these functions that are required by the
      * imported function.  And, if this function has any required functions
      * from the same xml file, it recursively adds these required functions.
-     */ 
+     */
     private void addRequiredFunctions(String functionName, HashMap functionMap)
-        throws STAFException, STAXException
-    {
-        STAXFunctionAction function = 
-            (STAXFunctionAction)functionMap.get(functionName);        
+            throws STAFException, STAXException {
+        STAXFunctionAction function =
+                (STAXFunctionAction) functionMap.get(functionName);
 
         this.addFunction(function);
 
@@ -1637,136 +1596,125 @@ public class STAXJob implements STAXThreadCompleteListener,
         // fFunctionMap if not already present
 
         StringTokenizer requiredFunctions = new StringTokenizer(
-            function.getRequires(), " ");
-            
-        while (requiredFunctions.hasMoreElements())
-        {
-            String reqFunctionName = (String)requiredFunctions.nextElement();
+                function.getRequires(), " ");
 
-            if (!functionExists(reqFunctionName))
-            {
+        while (requiredFunctions.hasMoreElements()) {
+            String reqFunctionName = (String) requiredFunctions.nextElement();
+
+            if (!functionExists(reqFunctionName)) {
                 addRequiredFunctions(reqFunctionName, functionMap);
             }
         }
     }
 
-    public void addDefaultSignalHandlers(ArrayList<STAXAction> actionList)
-    {
+    public void addDefaultSignalHandlers(ArrayList<STAXAction> actionList) {
         // Array of default SignalHandlers.  Each signal is described by
         // a signal name, an action, and a signal message variable name.
         // If the signal message variable name is not null, a message will
         // be sent to the STAX Monitor and logged with level 'error'.
-        
-        String[][] defaultSHArray = 
-        {
-            {
-                "STAXPythonEvaluationError", "terminate", "STAXPythonEvalMsg"
-            },
-            {
-                "STAXProcessStartError", "continue", "STAXProcessStartErrorMsg"
-            },
-            {
-                "STAXProcessStartTimeout", "continue",
-                "STAXProcessStartTimeoutMsg"
-            },
-            {
-                "STAXCommandStartError", "terminate",
-                "STAXCommandStartErrorMsg"
-            },
-            {
-                "STAXFunctionDoesNotExist", "terminate",
-                "STAXFunctionDoesNotExistMsg"
-            },
-            {
-                "STAXInvalidBlockName", "terminate", "STAXInvalidBlockNameMsg"
-            },
-            {
-                "STAXBlockDoesNotExist", "continue", "STAXBlockDoesNotExistMsg"
-            },
-            {
-                "STAXLogError", "continue", "STAXLogMsg"
-            },
-            {
-                "STAXTestcaseMissingError", "continue",
-                "STAXTestcaseMissingMsg"
-            },
-            {
-                "STAXInvalidTcStatusResult", "continue",
-                "STAXInvalidTcStatusResultMsg"
-            },
-            {
-                "STAXInvalidTimerValue", "terminate",
-                "STAXInvalidTimerValueMsg"
-            },
-            {
-                "STAXNoSuchSignalHandler", "continue",
-                "STAXNoSuchSignalHandlerMsg"
-            },
-            {
-                "STAXEmptyList", "continue", null
-            },
-            {
-                "STAXMaxThreadsExceeded", "terminate",
-                "STAXMaxThreadsExceededMsg"
-            },
-            {
-                "STAXInvalidMaxThreads", "terminate",
-                "STAXInvalidMaxThreadsMsg"
-            },
-            {
-                "STAXFunctionArgValidate", "terminate",
-                "STAXFunctionArgValidateMsg"
-            },
-            {
-                "STAXImportError", "terminate", "STAXImportErrorMsg"
-            },
-            {
-                "STAXFunctionImportError", "terminate",
-                "STAXFunctionImportErrorMsg"
-            },
-            {
-                "STAXInvalidTestcaseMode", "continue",
-                "STAXInvalidTestcaseModeMsg"
-            }
-        };
+
+        String[][] defaultSHArray =
+                {
+                        {
+                                "STAXPythonEvaluationError", "terminate", "STAXPythonEvalMsg"
+                        },
+                        {
+                                "STAXProcessStartError", "continue", "STAXProcessStartErrorMsg"
+                        },
+                        {
+                                "STAXProcessStartTimeout", "continue",
+                                "STAXProcessStartTimeoutMsg"
+                        },
+                        {
+                                "STAXCommandStartError", "terminate",
+                                "STAXCommandStartErrorMsg"
+                        },
+                        {
+                                "STAXFunctionDoesNotExist", "terminate",
+                                "STAXFunctionDoesNotExistMsg"
+                        },
+                        {
+                                "STAXInvalidBlockName", "terminate", "STAXInvalidBlockNameMsg"
+                        },
+                        {
+                                "STAXBlockDoesNotExist", "continue", "STAXBlockDoesNotExistMsg"
+                        },
+                        {
+                                "STAXLogError", "continue", "STAXLogMsg"
+                        },
+                        {
+                                "STAXTestcaseMissingError", "continue",
+                                "STAXTestcaseMissingMsg"
+                        },
+                        {
+                                "STAXInvalidTcStatusResult", "continue",
+                                "STAXInvalidTcStatusResultMsg"
+                        },
+                        {
+                                "STAXInvalidTimerValue", "terminate",
+                                "STAXInvalidTimerValueMsg"
+                        },
+                        {
+                                "STAXNoSuchSignalHandler", "continue",
+                                "STAXNoSuchSignalHandlerMsg"
+                        },
+                        {
+                                "STAXEmptyList", "continue", null
+                        },
+                        {
+                                "STAXMaxThreadsExceeded", "terminate",
+                                "STAXMaxThreadsExceededMsg"
+                        },
+                        {
+                                "STAXInvalidMaxThreads", "terminate",
+                                "STAXInvalidMaxThreadsMsg"
+                        },
+                        {
+                                "STAXFunctionArgValidate", "terminate",
+                                "STAXFunctionArgValidateMsg"
+                        },
+                        {
+                                "STAXImportError", "terminate", "STAXImportErrorMsg"
+                        },
+                        {
+                                "STAXFunctionImportError", "terminate",
+                                "STAXFunctionImportErrorMsg"
+                        },
+                        {
+                                "STAXInvalidTestcaseMode", "continue",
+                                "STAXInvalidTestcaseModeMsg"
+                        }
+                };
 
         // Add default SignalHandlers to actionList
 
-        for (int i = 0; i < defaultSHArray.length; i++)
-        {
+        for (int i = 0; i < defaultSHArray.length; i++) {
             ArrayList<STAXAction> signalHandlerActionList =
-                new ArrayList<STAXAction>();
+                    new ArrayList<STAXAction>();
 
             String signalName = defaultSHArray[i][0];
             String signalAction = defaultSHArray[i][1];
             String signalMsgVarName = defaultSHArray[i][2];
             String signalMsgText = "";
 
-            if (signalAction.equals("terminate"))
-            {
+            if (signalAction.equals("terminate")) {
                 signalMsgText = "'" + signalName + " signal raised. " +
-                    "Terminating job. '" + " + " + signalMsgVarName;
-            }
-            else if (signalAction.equals("continue"))
-            {
+                        "Terminating job. '" + " + " + signalMsgVarName;
+            } else if (signalAction.equals("continue")) {
                 signalMsgText = "'" + signalName + " signal raised. " +
-                    "Continuing job. '" + " + " + signalMsgVarName;
+                        "Continuing job. '" + " + " + signalMsgVarName;
             }
 
-            if (signalMsgVarName == null)
-            {
+            if (signalMsgVarName == null) {
                 // Add a No Operation (nop) Action to the action list
 
                 signalHandlerActionList.add(new STAXNopAction());
-            }
-            else
-            {
+            } else {
                 // Add a Log Action to the action list
 
                 int logfile = STAXJob.JOB_LOG;
 
-                if (signalName == "STAXLogError")
-                {
+                if (signalName == "STAXLogError") {
                     // Log the error message in the STAX JVM log (otherwise
                     // may get a duplicate STAXLogError signal)
 
@@ -1777,34 +1725,30 @@ public class STAXJob implements STAXThreadCompleteListener,
                 // to the STAX Monitor
 
                 signalHandlerActionList.add(new STAXLogAction(
-                    signalMsgText, "'error'", "1", "1", logfile));
+                        signalMsgText, "'error'", "1", "1", logfile));
             }
-            
-            if (signalAction.equals("terminate"))
-            {
+
+            if (signalAction.equals("terminate")) {
                 // Add a Terminate Job Action to the action list
 
                 signalHandlerActionList.add(
-                    new STAXTerminateAction("'main'"));
+                        new STAXTerminateAction("'main'"));
             }
 
             // Add the signalhandler action to the action list
 
-            if (signalHandlerActionList.size() == 1)
-            {
+            if (signalHandlerActionList.size() == 1) {
                 // Don't need a STAXSequenceAction since only 1 action in list
 
                 actionList.add(new STAXSignalHandlerAction(
-                    "'" + signalName + "'",
-                    signalHandlerActionList.get(0)));
-            }
-            else
-            {
+                        "'" + signalName + "'",
+                        signalHandlerActionList.get(0)));
+            } else {
                 // Wrap the action list is a STAXSequenceAction
 
                 actionList.add(new STAXSignalHandlerAction(
-                    "'" + signalName + "'",
-                    new STAXSequenceAction(signalHandlerActionList)));
+                        "'" + signalName + "'",
+                        new STAXSequenceAction(signalHandlerActionList)));
             }
         }
     }
@@ -1813,87 +1757,78 @@ public class STAXJob implements STAXThreadCompleteListener,
     // Event methods
     //
 
-    public void generateEvent(String eventSubType, Map<String, String> details)
-    {
+    public void generateEvent(String eventSubType, Map<String, String> details) {
         generateEvent(eventSubType, details, false);
     }
 
-    public void generateEvent(String eventSubType, Map<String, String> details, 
-                              boolean notifyAll)
-    {
+    public void generateEvent(String eventSubType, Map<String, String> details,
+                              boolean notifyAll) {
         // Check if event generation has been disabled and if so, do nothing
 
         if (!getSTAX().getEventGeneration())
             return;
-        
+
         // Generate an event that can be used to monitor a STAX job
 
         StringBuffer detailsString = new StringBuffer();
         String key = "";
         String value = "";
 
-        for (Map.Entry<String, String> entry : details.entrySet())
-        {
+        for (Map.Entry<String, String> entry : details.entrySet()) {
             key = entry.getKey();
             value = entry.getValue();
-            
-            if (value != null)
-            {
+
+            if (value != null) {
                 detailsString.append("PROPERTY ").append(
-                    STAFUtil.wrapData(key + "=" + value)).append(" ");
+                        STAFUtil.wrapData(key + "=" + value)).append(" ");
             }
         }
-        
+
         // The type machine should always be the local machine
         // The details parm must already be in the :length: format
         submitSync(
-            fSTAX.getEventServiceMachine(),
-            fSTAX.getEventServiceName(),
-            "GENERATE TYPE " + fSTAX.getServiceName().toUpperCase() + "/" +
-            fSTAX.getLocalMachineName() + "/" + fJobNumber +
-            " SUBTYPE " + STAFUtil.wrapData(eventSubType) +
-            " ASYNC " + detailsString.toString());
-                        
-        // Debug
-        if (false)
-        {
-            STAX.logToJVMLog(
-                "Debug", fJobNumber, 0,            	
-                "STAXJob::GenerateEvent:\n" +  "GENERATE TYPE " +
-                fSTAX.getServiceName().toUpperCase() + "/" +
-                fSTAX.getLocalMachineName() + "/" + fJobNumber +
-                " SUBTYPE " + STAFUtil.wrapData(eventSubType) +
-                " ASYNC " + details);
-        }
-        
-        if (notifyAll)
-        {
-            submitSync(
                 fSTAX.getEventServiceMachine(),
                 fSTAX.getEventServiceName(),
                 "GENERATE TYPE " + fSTAX.getServiceName().toUpperCase() + "/" +
-                fSTAX.getLocalMachineName() +
-                " SUBTYPE " + STAFUtil.wrapData(eventSubType) +
-                " ASYNC " + detailsString.toString());
-        
-            // Debug
-            if (false)
-            {
-                STAX.logToJVMLog(
-                    "Debug", fJobNumber, 0,            	
+                        fSTAX.getLocalMachineName() + "/" + fJobNumber +
+                        " SUBTYPE " + STAFUtil.wrapData(eventSubType) +
+                        " ASYNC " + detailsString.toString());
+
+        // Debug
+        if (false) {
+            STAX.logToJVMLog(
+                    "Debug", fJobNumber, 0,
                     "STAXJob::GenerateEvent:\n" + "GENERATE TYPE " +
-                    fSTAX.getServiceName().toUpperCase() + "/" +
-                    fSTAX.getLocalMachineName() +
-                    " SUBTYPE " + STAFUtil.wrapData(eventSubType) +
-                    " ASYNC " + details);
+                            fSTAX.getServiceName().toUpperCase() + "/" +
+                            fSTAX.getLocalMachineName() + "/" + fJobNumber +
+                            " SUBTYPE " + STAFUtil.wrapData(eventSubType) +
+                            " ASYNC " + details);
+        }
+
+        if (notifyAll) {
+            submitSync(
+                    fSTAX.getEventServiceMachine(),
+                    fSTAX.getEventServiceName(),
+                    "GENERATE TYPE " + fSTAX.getServiceName().toUpperCase() + "/" +
+                            fSTAX.getLocalMachineName() +
+                            " SUBTYPE " + STAFUtil.wrapData(eventSubType) +
+                            " ASYNC " + detailsString.toString());
+
+            // Debug
+            if (false) {
+                STAX.logToJVMLog(
+                        "Debug", fJobNumber, 0,
+                        "STAXJob::GenerateEvent:\n" + "GENERATE TYPE " +
+                                fSTAX.getServiceName().toUpperCase() + "/" +
+                                fSTAX.getLocalMachineName() +
+                                " SUBTYPE " + STAFUtil.wrapData(eventSubType) +
+                                " ASYNC " + details);
             }
         }
     }
 
-    public STAFResult log(int logfile, String level, String message)
-    {
-        if (logfile == STAXJob.JVM_LOG)
-        {
+    public STAFResult log(int logfile, String level, String message) {
+        if (logfile == STAXJob.JVM_LOG) {
             // Log to the JVM log instead of a STAX Job log
 
             STAX.logToJVMLog(level, fJobNumber, 0, message);
@@ -1910,40 +1845,33 @@ public class STAXJob implements STAXThreadCompleteListener,
 
         boolean noResolveMessage = false;
 
-        if (logfile == STAXJob.SERVICE_LOG)
-        {
+        if (logfile == STAXJob.SERVICE_LOG) {
             logName = serviceName + "_Service";
             noResolveMessage = true;
-        }
-        else if (logfile == STAXJob.JOB_LOG)
-        {
+        } else if (logfile == STAXJob.JOB_LOG) {
             logName = serviceName + "_Job_" + fJobNumber;
             noResolveMessage = true;
-        }
-        else if (logfile == STAXJob.USER_JOB_LOG)
-        {
+        } else if (logfile == STAXJob.USER_JOB_LOG) {
             logName = serviceName + "_Job_" + fJobNumber + "_User";
-        }
-        else
-        {
+        } else {
             // Log to STAX_Service log if invalid logfile specified 
 
             STAXTimestamp currentTimestamp = new STAXTimestamp();
             System.out.println(currentTimestamp.getTimestampString() +
-                               " STAX Service Error: Invalid Logfile " +
-                               logfile);
+                    " STAX Service Error: Invalid Logfile " +
+                    logfile);
 
             logName = serviceName + "_Service";
             noResolveMessage = true;
         }
 
         String logRequest = "LOG MACHINE LOGNAME " +
-            STAFUtil.wrapData(logName) + " LEVEL " + level;
+                STAFUtil.wrapData(logName) + " LEVEL " + level;
 
         if (noResolveMessage) logRequest += " NORESOLVEMESSAGE";
 
         logRequest += " MESSAGE " + STAFUtil.wrapData(message);
-        
+
         STAFResult result = submitSync("LOCAL", "LOG", logRequest);
 
         // Check if the result was unsuccessful except ignore the following
@@ -1953,21 +1881,17 @@ public class STAXJob implements STAXThreadCompleteListener,
         //   unregistered indicating the job has completed
 
         if ((result.rc != STAFResult.Ok) &&
-            (result.rc != STAFResult.UnknownService) &&
-            (result.rc != STAFResult.HandleDoesNotExist))
-        {
-            if (logfile != STAXJob.USER_JOB_LOG)
-            {
+                (result.rc != STAFResult.UnknownService) &&
+                (result.rc != STAFResult.HandleDoesNotExist)) {
+            if (logfile != STAXJob.USER_JOB_LOG) {
                 STAX.logToJVMLog(
-                    "Error", fJobNumber, 0, 
-                    "STAXJob::log: Log request failed with RC " + result.rc +
-                    " and Result " + result.result +
-                    "  level: " + level +
-                    "  logRequest: " + logRequest);
-            }
-            else if ((result.rc == STAFResult.VariableDoesNotExist) &&
-                     (!noResolveMessage))
-            {
+                        "Error", fJobNumber, 0,
+                        "STAXJob::log: Log request failed with RC " + result.rc +
+                                " and Result " + result.result +
+                                "  level: " + level +
+                                "  logRequest: " + logRequest);
+            } else if ((result.rc == STAFResult.VariableDoesNotExist) &&
+                    (!noResolveMessage)) {
                 // Retry logging the error message without resolving
                 // variables in the message
 
@@ -1979,88 +1903,74 @@ public class STAXJob implements STAXThreadCompleteListener,
 
         return result;
     }
-    
-    public void clearLogs()
-    {
+
+    public void clearLogs() {
         String serviceName = fSTAX.getServiceName().toUpperCase();
         String jobLogName;
         String userJobLogName;
-        
+
         jobLogName = serviceName + "_Job_" + fJobNumber;
         userJobLogName = serviceName + "_Job_" + fJobNumber + "_User";
-        
+
         String logRequest = "DELETE MACHINE " +
-            fSTAX.getLocalMachineNickname() + " LOGNAME " + 
-            STAFUtil.wrapData(jobLogName) + " CONFIRM";
-                                
+                fSTAX.getLocalMachineNickname() + " LOGNAME " +
+                STAFUtil.wrapData(jobLogName) + " CONFIRM";
+
         STAFResult result = submitSync("LOCAL", "LOG", logRequest);
-        
+
         logRequest = "DELETE MACHINE " + fSTAX.getLocalMachineNickname() +
-            " LOGNAME " +  STAFUtil.wrapData(userJobLogName) + " CONFIRM";
-                                
+                " LOGNAME " + STAFUtil.wrapData(userJobLogName) + " CONFIRM";
+
         result = submitSync("LOCAL", "LOG", logRequest);
     }
-    
-    public void clearJobDataDir()
-    {
+
+    public void clearJobDataDir() {
         // Delete the job data directory and recreate it
-        
+
         File dir = new File(fJobDataDir);
 
-        if (dir.exists())
-        {
+        if (dir.exists()) {
             String deleteDirRequest = "DELETE ENTRY " +
-                STAFUtil.wrapData(fJobDataDir) + " RECURSE CONFIRM";
-                                
+                    STAFUtil.wrapData(fJobDataDir) + " RECURSE CONFIRM";
+
             submitSync("local", "FS", deleteDirRequest);
         }
 
-        if (!dir.exists())
-        {
+        if (!dir.exists()) {
             dir.mkdirs();
         }
     }
 
-    public List<String> getBreakpointFunctionList()
-    {
+    public List<String> getBreakpointFunctionList() {
         return fBreakpointFunctionList;
     }
 
-    public void setBreakpointFunctionList(List<String> functionList)
-    {
-        synchronized(fBreakpointFunctionList)
-        {
+    public void setBreakpointFunctionList(List<String> functionList) {
+        synchronized (fBreakpointFunctionList) {
             fBreakpointFunctionList = functionList;
         }
     }
 
-    public int addBreakpointFunction(String functionName)
-    {
+    public int addBreakpointFunction(String functionName) {
         int breakpointID = getNextBreakpointNumber();
 
-        synchronized(fBreakpointFunctionList)
-        {
+        synchronized (fBreakpointFunctionList) {
             fBreakpointFunctionList.add(functionName);
         }
 
-        synchronized (fBreakpointsMap)
-        {
+        synchronized (fBreakpointsMap) {
             fBreakpointsMap.put(String.valueOf(breakpointID),
-                new STAXBreakpoint(BREAKPOINT_FUNCTION,
-                                  functionName, "", "", ""));
+                    new STAXBreakpoint(BREAKPOINT_FUNCTION,
+                            functionName, "", "", ""));
         }
 
         return breakpointID;
     }
 
-    public boolean isBreakpointFunction(String functionName)
-    {
-        synchronized (fBreakpointsMap)
-        {
-            for (STAXBreakpoint breakpoint : fBreakpointsMap.values())
-            {
-                if (functionName.equals(breakpoint.getFunction()))
-                {
+    public boolean isBreakpointFunction(String functionName) {
+        synchronized (fBreakpointsMap) {
+            for (STAXBreakpoint breakpoint : fBreakpointsMap.values()) {
+                if (functionName.equals(breakpoint.getFunction())) {
                     return true;
                 }
             }
@@ -2069,34 +1979,25 @@ public class STAXJob implements STAXThreadCompleteListener,
         return false;
     }
 
-    public List<String> getBreakpointLineList()
-    {
+    public List<String> getBreakpointLineList() {
         return fBreakpointLineList;
     }
 
-    public TreeMap<String, STAXBreakpoint> getBreakpointsMap()
-    {
+    public TreeMap<String, STAXBreakpoint> getBreakpointsMap() {
         return fBreakpointsMap;
     }
 
-    public void setBreakpointLineList(List<String> lineList)
-    {
-        synchronized(fBreakpointLineList)
-        {
+    public void setBreakpointLineList(List<String> lineList) {
+        synchronized (fBreakpointLineList) {
             fBreakpointLineList = lineList;
         }
     }
 
-    public STAFResult removeBreakpoint(String id)
-    {
-        synchronized(fBreakpointsMap)
-        {
-            if (!(fBreakpointsMap.containsKey(id)))
-            {
+    public STAFResult removeBreakpoint(String id) {
+        synchronized (fBreakpointsMap) {
+            if (!(fBreakpointsMap.containsKey(id))) {
                 return new STAFResult(STAFResult.DoesNotExist, id);
-            }
-            else
-            {
+            } else {
                 fBreakpointsMap.remove(id);
 
                 return new STAFResult(STAFResult.Ok);
@@ -2104,36 +2005,29 @@ public class STAXJob implements STAXThreadCompleteListener,
         }
     }
 
-    public int addBreakpointLine(String line, String file, String machine)
-    {
+    public int addBreakpointLine(String line, String file, String machine) {
         int breakpointID = getNextBreakpointNumber();
 
-        synchronized(fBreakpointLineList)
-        {
+        synchronized (fBreakpointLineList) {
             fBreakpointLineList.add(line + " " + machine + " " + file);
         }
 
-        synchronized (fBreakpointsMap)
-        {
+        synchronized (fBreakpointsMap) {
             fBreakpointsMap.put(String.valueOf(breakpointID),
-                new STAXBreakpoint(BREAKPOINT_LINE,
-                                   "", line, file, machine));
+                    new STAXBreakpoint(BREAKPOINT_LINE,
+                            "", line, file, machine));
         }
 
         return breakpointID;
     }
 
-    public boolean isBreakpointLine(String line, String file, String machine)
-    {
-        synchronized (fBreakpointsMap)
-        {
-            for (STAXBreakpoint breakpoint : fBreakpointsMap.values())
-            {
+    public boolean isBreakpointLine(String line, String file, String machine) {
+        synchronized (fBreakpointsMap) {
+            for (STAXBreakpoint breakpoint : fBreakpointsMap.values()) {
                 if (line.equals(breakpoint.getLine()) &&
-                    file.equals(breakpoint.getFile()) &&
-                    (breakpoint.getMachine().equals("") ||
-                    machine.equalsIgnoreCase(breakpoint.getMachine())))
-                {
+                        file.equals(breakpoint.getFile()) &&
+                        (breakpoint.getMachine().equals("") ||
+                                machine.equalsIgnoreCase(breakpoint.getMachine()))) {
                     return true;
                 }
             }
@@ -2142,55 +2036,47 @@ public class STAXJob implements STAXThreadCompleteListener,
         return false;
     }
 
-    public boolean breakpointsEmpty()
-    {
+    public boolean breakpointsEmpty() {
         return (fBreakpointsMap.isEmpty());
     }
 
     // Submit methods
-    
-    public STAFResult submitAsync(String location, String service, 
-        String request, STAXSTAFRequestCompleteListener listener)
-    {
+
+    public STAFResult submitAsync(String location, String service,
+                                  String request, STAXSTAFRequestCompleteListener listener) {
         STAFResult result;
-        
-        synchronized(fRequestMap)
-        {
+
+        synchronized (fRequestMap) {
             result = fHandle.submit2(
-                STAFHandle.ReqQueue, location, service, request);
-            
-            if (result.rc == STAFResult.Ok)
-            {
-                try
-                {
+                    STAFHandle.ReqQueue, location, service, request);
+
+            if (result.rc == STAFResult.Ok) {
+                try {
                     // Convert request number to a negative integer if greater
                     // then Integer.MAX_VALUE
 
                     Integer requestNumber = STAXUtil.convertRequestNumber(
-                        result.result);
+                            result.result);
 
                     fRequestMap.put(requestNumber, listener);
 
                     result.result = requestNumber.toString();
-                }
-                catch (NumberFormatException e)
-                {
+                } catch (NumberFormatException e) {
                     STAX.logToJVMLog("Error", fJobNumber, 0,
-                        "STAXJob::submitAsync - " + e.toString());
+                            "STAXJob::submitAsync - " + e.toString());
 
                     result.result = "0";
                 }
             }
         }
-        
+
         return result;
     }
-    
-    public STAFResult submitSync(String location, String service, 
-                                 String request)
-    {
+
+    public STAFResult submitSync(String location, String service,
+                                 String request) {
         STAFHandle theHandle = fHandle;
-        
+
         // If the STAX job's handle has not yet been assigned, use the
         // STAX service's handle to submit the STAF service request
 
@@ -2198,66 +2084,57 @@ public class STAXJob implements STAXThreadCompleteListener,
             theHandle = fSTAX.getSTAFHandle();
 
         STAFResult result = theHandle.submit2(
-            STAFHandle.ReqSync, location, service, request);
-        
+                STAFHandle.ReqSync, location, service, request);
+
         return result;
     }
 
-    public STAFResult submitAsyncForget(String location, String service, 
-                                        String request)
-    {
-        STAFResult result = fHandle.submit2(STAFHandle.ReqFireAndForget, 
-            location, service, request);
-        
+    public STAFResult submitAsyncForget(String location, String service,
+                                        String request) {
+        STAFResult result = fHandle.submit2(STAFHandle.ReqFireAndForget,
+                location, service, request);
+
         return result;
     }
-    
+
     // STAXSTAFQueueListener method
 
-    public void handleQueueMessage(STAXSTAFMessage message, STAXJob job)
-    {
+    public void handleQueueMessage(STAXSTAFMessage message, STAXJob job) {
         int requestNumber = message.getRequestNumber();
 
         STAXSTAFRequestCompleteListener listener = null;
 
-        synchronized (fRequestMap)
-        {
+        synchronized (fRequestMap) {
             Integer key = new Integer(requestNumber);
 
             listener = fRequestMap.get(key);
 
-            if (listener != null)
-            {
+            if (listener != null) {
                 fRequestMap.remove(key);
             }
         }
 
-        if (listener != null)
-        {
+        if (listener != null) {
             listener.requestComplete(requestNumber, new STAFResult(
-                message.getRequestRC(), message.getRequestResult()));
-        }
-        else
-        {   // Log a message in the job log
+                    message.getRequestRC(), message.getRequestResult()));
+        } else {   // Log a message in the job log
             String msg = "STAXJob.handleQueueMessage: " +
-                         " No listener found for message:\n" +
-                         STAFMarshallingContext.unmarshall(
-                             message.getResult()).toString();
+                    " No listener found for message:\n" +
+                    STAFMarshallingContext.unmarshall(
+                            message.getResult()).toString();
             job.log(STAXJob.JOB_LOG, "warning", msg);
         }
     }
 
     // STAXThreadCompleteListener method
 
-    public void threadComplete(STAXThread thread, int endCode)
-    {
+    public void threadComplete(STAXThread thread, int endCode) {
         // Debug:
-        if (false)
-        {
+        if (false) {
             STAX.logToJVMLog(
-            	"Debug", thread,
-            	"STAXJob::threadComplete: Thread #" +
-            	thread.getThreadNumber() + " complete");
+                    "Debug", thread,
+                    "STAXJob::threadComplete: Thread #" +
+                            thread.getThreadNumber() + " complete");
         }
 
         // Flush the stdout and stderr to make sure that all output is
@@ -2266,40 +2143,33 @@ public class STAXJob implements STAXThreadCompleteListener,
         // these messages have not all been flushed from the buffer and,
         // thus, not logged by the STAXPythonOutput class.
         // This was added as requested by Bug #1510.
-        try
-        {
+        try {
             thread.pyExec("sys.stdout.flush(); sys.stderr.flush()");
-        }
-        catch (STAXPythonEvaluationException e)
-        {
+        } catch (STAXPythonEvaluationException e) {
             // Do nothing
         }
 
         boolean jobComplete = false;
 
-        synchronized (fThreadMap)
-        {
+        synchronized (fThreadMap) {
             fThreadMap.remove(thread.getThreadNumberAsInteger());
 
             if (fThreadMap.isEmpty())
                 jobComplete = true;
         }
 
-        if (jobComplete == true)
-        {
+        if (jobComplete == true) {
             // Perform terminateJob on interested parties
 
-            fSTAX.visitJobManagementHandlers(new STAXVisitorHelper(this)
-            {
-                public void visit(Object o, Iterator iter)
-                {
+            fSTAX.visitJobManagementHandlers(new STAXVisitorHelper(this) {
+                public void visit(Object o, Iterator iter) {
                     STAXJobManagementHandler handler =
-                                             (STAXJobManagementHandler)o;
+                            (STAXJobManagementHandler) o;
 
-                    handler.terminateJob((STAXJob)fData);
+                    handler.terminateJob((STAXJob) fData);
                 }
             });
-            
+
             // End the STAXTimedEventQueue thread for the job
             if (fSTAX.getTimedEventQueuePerJob())
                 fTimedEventQueue.end();
@@ -2308,53 +2178,46 @@ public class STAXJob implements STAXThreadCompleteListener,
 
             String resultToEval = "STAXResult";
 
-            try 
-            {
-                if (thread.pyBoolEval("isinstance(STAXResult, STAXGlobal)"))
-                {
+            try {
+                if (thread.pyBoolEval("isinstance(STAXResult, STAXGlobal)")) {
                     // Use the STAXGlobal class's get() method so that the job
                     // result when using toString() will be it's contents and
                     // not org.python.core.PyFinalizableInstance
 
                     resultToEval = "STAXResult.get()";
                 }
-            }
-            catch (STAXPythonEvaluationException e)
-            {   /* Ignore error and assume not a STAXGlobal object */ }
-                
-            try
-            {
+            } catch (STAXPythonEvaluationException e) {   /* Ignore error and assume not a STAXGlobal object */ }
+
+            try {
                 fResult = thread.pyObjectEval(resultToEval);
-            }
-            catch (STAXPythonEvaluationException e)
-            {
+            } catch (STAXPythonEvaluationException e) {
                 fResult = Py.None;
             }
-            
+
             // Log the result from the job in a Status message in the Job log
 
             STAFMarshallingContext mc = STAFMarshallingContext.
-                unmarshall(fResult.toString());
+                    unmarshall(fResult.toString());
             log(STAXJob.JOB_LOG, "status", "Job Result: " + mc);
-            
+
             // Log a Stop message for the job in the STAX Service and Job logs
 
-            String msg = "JobID: " + fJobNumber; 
+            String msg = "JobID: " + fJobNumber;
             log(STAXJob.SERVICE_LOG, "stop", msg);
             log(STAXJob.JOB_LOG, "stop", msg);
-            
+
             // Get the current date and time and set as job ending date/time
 
             fEndTimestamp = new STAXTimestamp();
 
             // Generate job completion event
-            
+
             HashMap<String, String> jobEndMap = new HashMap<String, String>();
             jobEndMap.put("type", "job");
             jobEndMap.put("block", "main");
             jobEndMap.put("status", "end");
             jobEndMap.put("jobID", String.valueOf(fJobNumber));
-            jobEndMap.put("result", fResult.toString()); 
+            jobEndMap.put("result", fResult.toString());
             jobEndMap.put("jobCompletionStatus", getCompletionStatusAsString());
 
             generateEvent(STAXJob.STAX_JOB_EVENT, jobEndMap, true);
@@ -2375,37 +2238,32 @@ public class STAXJob implements STAXThreadCompleteListener,
             // completed
 
             submitSync("local", "QUEUE", "QUEUE TYPE STAF/Service/STAX/End " +
-                       "MESSAGE " + STAFUtil.wrapData(""));
+                    "MESSAGE " + STAFUtil.wrapData(""));
 
             // Debug
-            if (COUNT_PYCODE_CACHES && STAX.CACHE_PYTHON_CODE)
-            {
+            if (COUNT_PYCODE_CACHES && STAX.CACHE_PYTHON_CODE) {
                 STAX.logToJVMLog(
-                    "Debug", thread,
-                    "STAXJob::threadComplete: Job " + fJobNumber + ": " +
-                    " cacheGets=" + fCompiledPyCodeCacheGets +
-                    " cacheAdds=" + fCompiledPyCodeCacheAdds);
+                        "Debug", thread,
+                        "STAXJob::threadComplete: Job " + fJobNumber + ": " +
+                                " cacheGets=" + fCompiledPyCodeCacheGets +
+                                " cacheAdds=" + fCompiledPyCodeCacheAdds);
             }
-            
-            while (!fCompletionNotifiees.isEmpty())
-            {
+
+            while (!fCompletionNotifiees.isEmpty()) {
                 STAXJobCompleteListener listener =
-                    fCompletionNotifiees.removeFirst();
+                        fCompletionNotifiees.removeFirst();
 
                 if (listener != null) listener.jobComplete(this);
             }
 
-            try
-            {
+            try {
                 fHandle.unRegister();
-            }
-            catch (STAFException e)
-            {
+            } catch (STAFException e) {
                 /* Do Nothing */
             }
 
             // Clear out job's private variables
-            
+
             fScripts = new ArrayList<String>();
             fScriptFiles = new ArrayList<String>();
             fThreadMap = new LinkedHashMap<Integer, STAXThread>();
@@ -2436,62 +2294,55 @@ public class STAXJob implements STAXThreadCompleteListener,
      * contain xml parsing or Python compile errors and to not actually
      * run the job.
      */
-    public void cleanupPendingJob(STAFResult result)
-    {
+    public void cleanupPendingJob(STAFResult result) {
         STAXJob job = fSTAX.removeFromJobMap(getJobNumberAsInteger());
 
-        if (job == null)
-        {
+        if (job == null) {
             // The job is not in the job map
             return;
         }
 
-        if (result.rc != STAFResult.Ok)
-        {
+        if (result.rc != STAFResult.Ok) {
             setCompletionStatus(TERMINATED_STATUS);
-            
+
             // Log the error message in the job log
 
-            if (STAFMarshallingContext.isMarshalledData(result.result))
-            {
-                try
-                {
+            if (STAFMarshallingContext.isMarshalledData(result.result)) {
+                try {
                     STAFMarshallingContext mc =
-                        STAFMarshallingContext.unmarshall(result.result);
-                    Map resultMap = (Map)mc.getRootObject();
-                    result.result = (String)resultMap.get("errorMsg");
-                }
-                catch (Exception e)
-                {
+                            STAFMarshallingContext.unmarshall(result.result);
+                    Map resultMap = (Map) mc.getRootObject();
+                    result.result = (String) resultMap.get("errorMsg");
+                } catch (Exception e) {
                     STAX.logToJVMLog(
-                        "Error", fJobNumber, 0,
-                        "STAXJob::cleanupPendingJob: " + e.toString());
+                            "Error", fJobNumber, 0,
+                            "STAXJob::cleanupPendingJob: " + e.toString());
                 }
             }
 
             log(STAXJob.JOB_LOG, "error", result.result);
         }
-        
+
         // Log the testcase totals in the Job log by first calling the
         // STAXTestcaseActionFactory's initJob() method (to initialize the
         // testcase totals to 0) and then by calling its terminateJob() method
         // which logs the testcase totals
 
         STAXJobManagementHandler testcaseHandler =
-            (STAXJobManagementHandler)fSTAX.getActionFactory("testcase");
-        
+                (STAXJobManagementHandler) fSTAX.getActionFactory("testcase");
+
         testcaseHandler.initJob(this);
         testcaseHandler.terminateJob(this);
 
         // Log the result from the job in a Status message in the Job log
 
         STAFMarshallingContext mc = STAFMarshallingContext.
-            unmarshall(fResult.toString());
+                unmarshall(fResult.toString());
         log(STAXJob.JOB_LOG, "status", "Job Result: " + mc);
 
         // Log a Stop message for the job in the STAX Service and Job logs
 
-        String msg = "JobID: " + fJobNumber; 
+        String msg = "JobID: " + fJobNumber;
         log(STAXJob.SERVICE_LOG, "stop", msg);
         log(STAXJob.JOB_LOG, "stop", msg);
 
@@ -2505,7 +2356,7 @@ public class STAXJob implements STAXThreadCompleteListener,
         jobEndMap.put("block", "main");
         jobEndMap.put("status", "end");
         jobEndMap.put("jobID", String.valueOf(fJobNumber));
-        jobEndMap.put("result", fResult.toString()); 
+        jobEndMap.put("result", fResult.toString());
         jobEndMap.put("jobCompletionStatus", getCompletionStatusAsString());
 
         generateEvent(STAXJob.STAX_JOB_EVENT, jobEndMap, true);
@@ -2522,15 +2373,11 @@ public class STAXJob implements STAXThreadCompleteListener,
 
         writeJobResultsToFile();
 
-        if (fHandle != null)
-        {
+        if (fHandle != null) {
             // Unregister the job's handle
-            try
-            {
+            try {
                 fHandle.unRegister();
-            }
-            catch (STAFException e)
-            {
+            } catch (STAFException e) {
                 /* Do Nothing */
             }
         }
@@ -2539,20 +2386,19 @@ public class STAXJob implements STAXThreadCompleteListener,
     /**
      * Query the STAX Job Log to get any messages with level "Error" that
      * were logged for this job.
-     * 
+     *
      * @return STAFMarshallingContext Return a marshalling context for the
      * result from the LOG QUERY request whose root object is a list of
      * error messages.
      */
-    private STAFMarshallingContext getJobLogErrors()
-    {
+    private STAFMarshallingContext getJobLogErrors() {
         String jobLogName = fSTAX.getServiceName().toUpperCase() + "_Job_" +
-            getJobNumber();
+                getJobNumber();
 
         String request = "QUERY MACHINE " + fSTAX.getLocalMachineNickname() +
-            " LOGNAME " + STAFUtil.wrapData(jobLogName) +
-            " LEVELMASK Error" +
-            " FROM " + getStartTimestamp().getTimestampString();
+                " LOGNAME " + STAFUtil.wrapData(jobLogName) +
+                " LEVELMASK Error" +
+                " FROM " + getStartTimestamp().getTimestampString();
 
         STAFResult result = submitSync("local", "LOG", request);
 
@@ -2568,15 +2414,14 @@ public class STAXJob implements STAXThreadCompleteListener,
         //   unregistered indicating the job has completed
 
         if ((result.rc != STAFResult.UnknownService) &&
-            (result.rc != STAFResult.HandleDoesNotExist))
-        {
+                (result.rc != STAFResult.HandleDoesNotExist)) {
             // Log an error in the JVM log
 
             STAX.logToJVMLog(
-                "Error", getJobNumber(), 0,
-                "STAXJob::getJobLogErrors() failed for Job ID: " +
-                getJobNumber() + "\nSTAF local LOG " + request +
-                "  RC=" + result.rc + ", Result=" + result.result);
+                    "Error", getJobNumber(), 0,
+                    "STAXJob::getJobLogErrors() failed for Job ID: " +
+                            getJobNumber() + "\nSTAF local LOG " + request +
+                            "  RC=" + result.rc + ", Result=" + result.result);
         }
 
         return null;
@@ -2585,17 +2430,16 @@ public class STAXJob implements STAXThreadCompleteListener,
     /*
      * Write the marshalled job result information to files in the STAX job
      * directory
-     */ 
-    private void writeJobResultsToFile()
-    {
+     */
+    private void writeJobResultsToFile() {
         // Create the marshalling context for the results without the testcase
         // list
 
         STAFMarshallingContext resultMC = new STAFMarshallingContext();
         resultMC.setMapClassDefinition(fSTAX.fResultMapClass);
         resultMC.setMapClassDefinition(
-            STAXTestcaseActionFactory.fTestcaseTotalsMapClass);
-        
+                STAXTestcaseActionFactory.fTestcaseTotalsMapClass);
+
         Map<String, Object> resultMap = new TreeMap<String, Object>();
         resultMap.put("staf-map-class-name", fSTAX.fResultMapClass.name());
 
@@ -2607,9 +2451,9 @@ public class STAXJob implements STAXThreadCompleteListener,
 
         // Write the marshalled string for the results without the testcase
         // list to file marshalledResults.txt in directory fJobDataDir
-        
+
         writeStringToFile(fSTAX.getResultFileName(fJobNumber),
-                          marshalledResultString);
+                marshalledResultString);
 
         // Create the marshalling context for the results with the testcase
         // list
@@ -2617,14 +2461,14 @@ public class STAXJob implements STAXThreadCompleteListener,
         resultMC = new STAFMarshallingContext();
         resultMC.setMapClassDefinition(fSTAX.fDetailedResultMapClass);
         resultMC.setMapClassDefinition(
-            STAXTestcaseActionFactory.fTestcaseTotalsMapClass);
+                STAXTestcaseActionFactory.fTestcaseTotalsMapClass);
         resultMC.setMapClassDefinition(
-            STAXTestcaseActionFactory.fQueryTestcaseMapClass);
+                STAXTestcaseActionFactory.fQueryTestcaseMapClass);
 
         resultMap = new TreeMap<String, Object>();
         resultMap.put("staf-map-class-name",
-                      fSTAX.fDetailedResultMapClass.name());
-        
+                fSTAX.fDetailedResultMapClass.name());
+
         resultMap = addCommonFieldsToResultMap(resultMap);
 
         resultMap.put("testcaseList", fTestcaseList);
@@ -2637,21 +2481,20 @@ public class STAXJob implements STAXThreadCompleteListener,
         // list to file marshalledResultsLong.txt in directory fJobDataDir
 
         writeStringToFile(fSTAX.getDetailedResultFileName(fJobNumber),
-                          marshalledResultString);
+                marshalledResultString);
     }
 
     private Map<String, Object> addCommonFieldsToResultMap(
-        Map<String, Object> inResultMap)
-    {
+            Map<String, Object> inResultMap) {
         Map<String, Object> resultMap = new HashMap<String, Object>(inResultMap);
 
         if (!fJobName.equals(""))
             resultMap.put("jobName", fJobName);
 
         resultMap.put("startTimestamp",
-                      fStartTimestamp.getTimestampString());
+                fStartTimestamp.getTimestampString());
         resultMap.put("endTimestamp",
-                      fEndTimestamp.getTimestampString());
+                fEndTimestamp.getTimestampString());
         resultMap.put("status", getCompletionStatusAsString());
         resultMap.put("result", fResult.toString());
         resultMap.put("testcaseTotals", fTestcaseTotalsMap);
@@ -2660,7 +2503,7 @@ public class STAXJob implements STAXThreadCompleteListener,
         resultMap.put("fileMachine", fXmlMachine);
         resultMap.put("function", getStartFunction());
         resultMap.put("arguments",
-                      STAFUtil.maskPrivateData(getStartFuncArgs()));
+                STAFUtil.maskPrivateData(getStartFuncArgs()));
         resultMap.put("scriptList", fScripts);
         resultMap.put("scriptFileList", fScriptFiles);
 
@@ -2669,34 +2512,25 @@ public class STAXJob implements STAXThreadCompleteListener,
 
         return resultMap;
     }
-        
+
     /**
-     *  Write the contents of a string to the specified file name
-     */ 
-    private void writeStringToFile(String fileName, String data)
-    {
+     * Write the contents of a string to the specified file name
+     */
+    private void writeStringToFile(String fileName, String data) {
         FileWriter out = null;
 
-        try
-        {
+        try {
             File outFile = new File(fileName);
             out = new FileWriter(outFile);
             out.write(data);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             log(STAXJob.JVM_LOG, "Error",
-                "Error writing to job results file: " + fileName + ".\n" +
-                e.toString());
-        }
-        finally
-        {
-            try
-            {
+                    "Error writing to job results file: " + fileName + ".\n" +
+                            e.toString());
+        } finally {
+            try {
                 if (out != null) out.close();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 // Do nothing
             }
         }
@@ -2727,12 +2561,12 @@ public class STAXJob implements STAXThreadCompleteListener,
     private List<String> fScriptFiles = new ArrayList<String>();
     private String fScriptFileMachine = new String();
     private Map<Integer, STAXThread> fThreadMap =
-        new LinkedHashMap<Integer, STAXThread>();
+            new LinkedHashMap<Integer, STAXThread>();
     private STAFHandle fHandle = null;
     private STAFQueueMonitor fSTAFQueueMonitor = null;
     private LinkedList<STAXJobCompleteListener> fCompletionNotifiees =
-        new LinkedList<STAXJobCompleteListener>();
-        
+            new LinkedList<STAXJobCompleteListener>();
+
     /**
      * Used if the STAX parameter TimedEventQueue is set to "Job" to indicate
      * that a STAXTimedEventQueue should be created for each job instead of
@@ -2755,12 +2589,12 @@ public class STAXJob implements STAXThreadCompleteListener,
     private STAXTimestamp fStartTimestamp;
     private STAXTimestamp fEndTimestamp;
     private HashMap<String, TreeSet<STAXSTAFQueueListener>> fQueueListenerMap =
-        new HashMap<String, TreeSet<STAXSTAFQueueListener>>();
+            new HashMap<String, TreeSet<STAXSTAFQueueListener>>();
     private HashMap<String, Object> fDataMap = new HashMap<String, Object>();
 
     // Map of active STAF requests
     private HashMap<Integer, STAXSTAFRequestCompleteListener> fRequestMap =
-        new HashMap<Integer, STAXSTAFRequestCompleteListener>();
+            new HashMap<Integer, STAXSTAFRequestCompleteListener>();
 
     private boolean fLogTCElapsedTime;
     private boolean fLogTCNumStarts;
@@ -2769,54 +2603,48 @@ public class STAXJob implements STAXThreadCompleteListener,
     private String fPythonLogLevel;
     private int fInvalidLogLevelAction;
     private HashMap<String, PyCode> fCompiledPyCodeCache =
-        new HashMap<String, PyCode>();
+            new HashMap<String, PyCode>();
     private long fCompiledPyCodeCacheAdds = 0;
     private long fCompiledPyCodeCacheGets = 0;
     private List<Map<String, Object>> fTestcaseList =
-        new ArrayList<Map<String, Object>>();
+            new ArrayList<Map<String, Object>>();
     private List<String> fBreakpointFunctionList = new ArrayList<String>();
     private List<String> fBreakpointLineList = new ArrayList<String>();
     private Map<String, String> fTestcaseTotalsMap =
-        new HashMap<String, String>();
+            new HashMap<String, String>();
     private TreeMap<String, STAXBreakpoint> fBreakpointsMap =
-        new TreeMap<String, STAXBreakpoint>();
+            new TreeMap<String, STAXBreakpoint>();
     private Object fNextBreakpointNumberSynch = new Object();
     private int fNextBreakpointNumber = 1;
     private boolean fBreakpointFirstFunction = false;
     private boolean fBreakpointSubjobFirstFunction = false;
     private STAFMarshallingContext fJobLogErrorsMC =
-        new STAFMarshallingContext();
+            new STAFMarshallingContext();
 
     class STAXSTAFQueueListenerComparator
-        implements Comparator<STAXSTAFQueueListener>
-    {
-        public int compare(STAXSTAFQueueListener o1, STAXSTAFQueueListener o2)
-        {
+            implements Comparator<STAXSTAFQueueListener> {
+        public int compare(STAXSTAFQueueListener o1, STAXSTAFQueueListener o2) {
             if (o1.hashCode() < o2.hashCode()) return -1;
             else if (o1.hashCode() > o2.hashCode()) return 1;
 
             return 0;
-        } 
+        }
     }
 
-    class STAFQueueMonitor extends Thread
-    {
-        STAFQueueMonitor(STAXJob job)
-        {
+    class STAFQueueMonitor extends Thread {
+        STAFQueueMonitor(STAXJob job) {
             fJob = job;
         }
-        
+
         /**
-         *  Log an error message in the JVM log and the STAX Job log
+         * Log an error message in the JVM log and the STAX Job log
          */
-        public void logMessage(String message, Throwable t)
-        {
+        public void logMessage(String message, Throwable t) {
             STAXTimestamp currentTimestamp = new STAXTimestamp();
-            
+
             message = "STAXJob$STAFQueueMonitor.run(): " + message;
 
-            if (t != null)
-            {
+            if (t != null) {
                 // Add the Java stack trace to the message
 
                 StringWriter sw = new StringWriter();
@@ -2827,7 +2655,7 @@ public class STAXJob implements STAXThreadCompleteListener,
                 else
                     message += "\n" + sw.toString();
             }
-            
+
             // Truncate the message to a maximum size of 3000 (in case
             // the result from the QUEUE GET WAIT request is very large)
 
@@ -2837,15 +2665,14 @@ public class STAXJob implements STAXThreadCompleteListener,
             // Log an error message in the STAX JVM log
 
             STAX.logToJVMLog(
-                "Error", fJob.getJobNumber(), 0, message);
+                    "Error", fJob.getJobNumber(), 0, message);
 
             // Log an error message in the STAX Job log
 
             fJob.log(STAXJob.JOB_LOG, "Error", message);
         }
 
-        public void run()
-        {
+        public void run() {
             STAFMarshallingContext mc;
             List messageList;
             int maxMessages = fJob.getSTAX().getMaxGetQueueMessages();
@@ -2862,12 +2689,10 @@ public class STAXJob implements STAXThreadCompleteListener,
             // consecutive times submitting a STAF local QUEUE GET request
             // (so that we don't get stuck in an infinite loop eating CPU).
 
-            for (;;)
-            {
+            for (; ; ) {
                 result = null;
 
-                try
-                {
+                try {
                     // For better performance when more than 1 message is on
                     // the queue waiting to be processed, get multiple
                     // messages off the queue at a time (up to maxMessages)
@@ -2875,40 +2700,33 @@ public class STAXJob implements STAXThreadCompleteListener,
                     // cause an OutOfMemory problem.
                     // Note:  If an error occurs unmarshalling the list of
                     // messages, all these messages will be lost.
-                    
+
                     result = submitSync("local", "QUEUE", request);
 
-                    if (result == null)
-                    {
+                    if (result == null) {
                         numErrors++;
-                        
-                        logMessage(
-                            "STAF local QUEUE " + request +
-                            " returned null. This may have been caused by " +
-                            "running out of memory creating the result.",
-                            null);
 
-                        if (numErrors < maxErrors)
-                        {
+                        logMessage(
+                                "STAF local QUEUE " + request +
+                                        " returned null. This may have been caused by " +
+                                        "running out of memory creating the result.",
+                                null);
+
+                        if (numErrors < maxErrors) {
                             continue;
-                        }
-                        else
-                        {
+                        } else {
                             logMessage(
-                                "Exiting this thread after the QUEUE GET " +
-                                "request failed " + maxErrors +
-                                " consecutive times.", null);
+                                    "Exiting this thread after the QUEUE GET " +
+                                            "request failed " + maxErrors +
+                                            " consecutive times.", null);
 
                             return;  // Exit STAFQueueMonitor thread
                         }
                     }
-                    
-                    if (result.rc == STAFResult.Ok)
-                    {
+
+                    if (result.rc == STAFResult.Ok) {
                         numErrors = 0;
-                    }
-                    else if (result.rc == STAFResult.HandleDoesNotExist)
-                    {
+                    } else if (result.rc == STAFResult.HandleDoesNotExist) {
                         // This means that the STAX job's handle has been
                         // unregistered which means that the STAX job is no
                         // longer running so we should exit this thread.
@@ -2917,33 +2735,26 @@ public class STAXJob implements STAXThreadCompleteListener,
                         // the queue.
 
                         return;  // Exit STAFQueueMonitor thread
-                    }
-                    else
-                    {
+                    } else {
                         numErrors++;
-                        
-                        logMessage(
-                            "STAF local QUEUE " + request +
-                            " failed with RC=" + result.rc + ", Result=" +
-                            result.result, null);
 
-                        if (numErrors < maxErrors)
-                        {
+                        logMessage(
+                                "STAF local QUEUE " + request +
+                                        " failed with RC=" + result.rc + ", Result=" +
+                                        result.result, null);
+
+                        if (numErrors < maxErrors) {
                             continue;
-                        }
-                        else
-                        {
+                        } else {
                             logMessage(
-                                "Exiting this thread after the QUEUE GET " +
-                                "request failed " + maxErrors +
-                                " consecutive times", null);
+                                    "Exiting this thread after the QUEUE GET " +
+                                            "request failed " + maxErrors +
+                                            " consecutive times", null);
 
                             return;  // Exit STAFQueueMonitor thread
                         }
                     }
-                }
-                catch (Throwable t)
-                {
+                } catch (Throwable t) {
                     // Note: One possible reason for an exception occurring
                     // submitting a QUEUE GET WAIT request can be because
                     // an error occurred when the result was auto-unmarshalled
@@ -2954,41 +2765,35 @@ public class STAXJob implements STAXThreadCompleteListener,
                     numErrors++;
 
                     logMessage(
-                        "Exception getting message(s) off the queue.", t);
+                            "Exception getting message(s) off the queue.", t);
 
-                    if (numErrors < maxErrors)
-                    {
+                    if (numErrors < maxErrors) {
                         continue;
-                    }
-                    else
-                    {
+                    } else {
                         logMessage(
-                            "Exiting this thread after the QUEUE GET " +
-                            "request failed " + maxErrors +
-                            " consecutive times", null);
+                                "Exiting this thread after the QUEUE GET " +
+                                        "request failed " + maxErrors +
+                                        " consecutive times", null);
 
                         return;  // Exit STAFQueueMonitor thread
                     }
                 }
 
-                try
-                {
+                try {
                     // Unmarshall the result from a QUEUE GET request, but
                     // don't unmarshall indirect objects
 
                     mc = STAFMarshallingContext.unmarshall(
-                        result.result,
-                        STAFMarshallingContext.IGNORE_INDIRECT_OBJECTS);
-                    
-                    messageList = (List)mc.getRootObject();
-                }
-                catch (Throwable t)
-                {
+                            result.result,
+                            STAFMarshallingContext.IGNORE_INDIRECT_OBJECTS);
+
+                    messageList = (List) mc.getRootObject();
+                } catch (Throwable t) {
                     // Log an error message and continue
 
                     logMessage(
-                        "Exception unmarshalling queued messages. " +
-                        "\nMarshalled string: " + result.result, t);
+                            "Exception unmarshalling queued messages. " +
+                                    "\nMarshalled string: " + result.result, t);
                     continue;
                 }
 
@@ -2997,110 +2802,93 @@ public class STAXJob implements STAXThreadCompleteListener,
 
                 Iterator iter = messageList.iterator();
                 STAXSTAFMessage msg;
-                    
-                while (iter.hasNext())
-                {
+
+                while (iter.hasNext()) {
                     // Process the message
 
-                    try
-                    {
-                        msg = new STAXSTAFMessage((Map)iter.next());
-                    }
-                    catch (Throwable t)
-                    {
+                    try {
+                        msg = new STAXSTAFMessage((Map) iter.next());
+                    } catch (Throwable t) {
                         // Log an error message and continue
 
                         logMessage("Exception handling a queued message.", t);
                         continue;
                     }
-                    
+
                     String type = msg.getType();
-                        
+
                     if (type != null &&
-                        type.equalsIgnoreCase("STAF/Service/STAX/End"))
-                    {
+                            type.equalsIgnoreCase("STAF/Service/STAX/End")) {
                         return;  // Exit STAFQueueMonitorThread
                     }
-                        
-                    try
-                    {
+
+                    try {
                         notifyListeners(msg);
-                    }
-                    catch (Throwable t)
-                    {
+                    } catch (Throwable t) {
                         // Log an error message and continue
 
                         logMessage(
-                            "Exception notifying listeners for a message " +
-                            "with type '" + type +
-                            "' from handle " + msg.getHandle() +
-                            " on machine " + msg.getMachine() +
-                            " \nMessage: " + msg.getMessage(), t);
+                                "Exception notifying listeners for a message " +
+                                        "with type '" + type +
+                                        "' from handle " + msg.getHandle() +
+                                        " on machine " + msg.getMachine() +
+                                        " \nMessage: " + msg.getMessage(), t);
                         continue;
                     }
                 }
             }
         }
 
-        public void notifyListeners(STAXSTAFMessage msg)
-        {
+        public void notifyListeners(STAXSTAFMessage msg) {
             // Perform a lookup of registered message handlers for
             // this message type and pass the STAXSTAFMessage to
             // the registered message handlers.
-            
+
             String theType = msg.getType();
             int listenersFound = 0;
 
-            synchronized (fQueueListenerMap) 
-            {
+            synchronized (fQueueListenerMap) {
                 for (Map.Entry<String, TreeSet<STAXSTAFQueueListener>> entry :
-                     fQueueListenerMap.entrySet())
-                {
+                        fQueueListenerMap.entrySet()) {
                     String msgType = entry.getKey();
 
                     if ((msgType == null) ||
-                        // Messages from 3.x clients that STAX is interested
-                        // in will have a type
-                        (theType != null &&
-                         theType.equalsIgnoreCase(msgType)) ||
-                        // The following is for messages from 2.x clients
-                        // which will have a null type and the message will
-                        // begin with the type (which for processes will be
-                        // STAF/PROCESS/END instead of STAF/Process/End
-                        (theType == null && msg.getMessage().toUpperCase().
-                         startsWith(msgType.toUpperCase())))
-                    {
+                            // Messages from 3.x clients that STAX is interested
+                            // in will have a type
+                            (theType != null &&
+                                    theType.equalsIgnoreCase(msgType)) ||
+                            // The following is for messages from 2.x clients
+                            // which will have a null type and the message will
+                            // begin with the type (which for processes will be
+                            // STAF/PROCESS/END instead of STAF/Process/End
+                            (theType == null && msg.getMessage().toUpperCase().
+                                    startsWith(msgType.toUpperCase()))) {
                         TreeSet<STAXSTAFQueueListener> listenerSet =
-                            entry.getValue();
+                                entry.getValue();
 
                         if (listenerSet == null) continue;
 
-                        for (STAXSTAFQueueListener listener : listenerSet) 
-                        {
+                        for (STAXSTAFQueueListener listener : listenerSet) {
                             listener.handleQueueMessage(msg, fJob);
                             listenersFound++;
                         }
                     }
                 }
-                
+
                 if ((listenersFound == 0) &&
-                    (theType.equals("STAF/RequestComplete") ||
-                     theType.equals("STAF/Process/End")))
-                {
+                        (theType.equals("STAF/RequestComplete") ||
+                                theType.equals("STAF/Process/End"))) {
                     // Log a warning message in the job log as this could
                     // indicate a problem in the how the STAX service is
                     // handling these messages
 
-                    try
-                    {
+                    try {
                         fJob.log(STAXJob.JOB_LOG, "warning",
-                                 "STAXJob.notifyListeners: " +
-                                 "No listener found for message:\n" +
-                                 STAFMarshallingContext.unmarshall(
-                                     msg.getResult()).toString());
-                    }
-                    catch (Throwable t)
-                    {
+                                "STAXJob.notifyListeners: " +
+                                        "No listener found for message:\n" +
+                                        STAFMarshallingContext.unmarshall(
+                                                msg.getResult()).toString());
+                    } catch (Throwable t) {
                         // Ignore
                     }
                 }

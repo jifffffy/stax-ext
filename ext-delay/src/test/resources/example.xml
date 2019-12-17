@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="GBK" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+    <defaultcall function="test"/>
+    <function name="test">
+        <parallel>
+            <block name="'Block A'">
+                <parallel>
+                    <stafcmd>
+                        <location>'local'</location>
+                        <service>'delay'</service>
+                        <request>'delay 10000'</request>
+                    </stafcmd>
+                    <ext-delay>20</ext-delay>
+                </parallel>
+            </block>
+            <block name="'Block B'">
+                <ext-delay>10</ext-delay>
+            </block>
+            <block name="'Block C'">
+                <parallel>
+                    <ext-delay>10</ext-delay>
+                    <ext-delay/>
+                </parallel>
+            </block>
+            <block name="'Block D'">
+                <parallel>
+                    <ext-wait>8</ext-wait>
+                    <ext-sleep/>
+                </parallel>
+            </block>
+        </parallel>
+    </function>
+</stax>

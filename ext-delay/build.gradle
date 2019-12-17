@@ -1,3 +1,78 @@
 dependencies {
+    compile project(':stax')
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+}
 
+
+/**
+ *
+ * Manifest-Version: 1.0
+ *
+ * Name: staf/staxinfo/extension
+ * Extension-Version: 3.3.0
+ * Extension-Description: Delay STAX Extensions
+ * Required-Service-Version: 3.3.0
+ * Required-Monitor-Version: 3.0.0
+ *
+ * Name: staf/stax/extension/ext-delay
+ * Factory-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtDelayActionFactory
+ *
+ * Name: staf/stax/extension/ext-sleep
+ * Factory-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtSleepActionFactory
+ *
+ * Name: staf/stax/extension/ext-wait
+ * Factory-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtWaitActionFactory
+ *
+ * Name: staf/staxmonitor/extension/ext-delay
+ * Extension-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtDelay
+ */
+task stafManifest {
+
+    doLast {
+        String lineSep = System.getProperty("line.separator")
+        File file = file('MANIFEST.MF')
+        file.write('')
+        file.append("Manifest-Version: 1.0" + lineSep)
+        file.append(lineSep)
+        file.append("Name: staf/staxinfo/extension" + lineSep)
+        file.append('Extension-Version: 3.3.0' + lineSep)
+        file.append('Extension-Description: Delay STAX Extensions' + lineSep)
+        file.append('Required-Service-Version: 3.3.0' + lineSep)
+        file.append('Required-Monitor-Version: 3.0.0' + lineSep)
+        file.append(lineSep)
+        file.append('Name: staf/stax/extension/ext-delay' + lineSep)
+        file.append('Factory-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtDelayActionFactory' + lineSep)
+        file.append(lineSep)
+        file.append('Name: staf/stax/extension/ext-sleep' + lineSep)
+        file.append('Factory-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtSleepActionFactory' + lineSep)
+        file.append(lineSep)
+        file.append('Name: staf/stax/extension/ext-wait' + lineSep)
+        file.append('Factory-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtWaitActionFactory' + lineSep)
+        file.append(lineSep)
+        file.append('Name: staf/staxmonitor/extension/ext-delay' + lineSep)
+        file.append('Extension-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtDelay' + lineSep)
+        file.append(lineSep)
+    }
+
+}
+
+task staf(type: Jar, dependsOn: stafManifest) {
+
+    manifest {
+        from 'MANIFEST.MF'
+    }
+
+    /*into('STAX-INF/jars') {
+        from configurations.runtime
+    }*/
+
+    into('STAX-INF/classes') {
+        from compileJava.destinationDir
+    }
+
+    into('STAX-INF/images') {
+        from 'src/main/resources'
+    }
+
+    archiveName = 'ExtDelay.jar'
 }
