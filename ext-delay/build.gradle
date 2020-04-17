@@ -49,9 +49,9 @@ task stafManifest {
         file.append('Name: staf/stax/extension/ext-wait' + lineSep)
         file.append('Factory-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtWaitActionFactory' + lineSep)
         file.append(lineSep)
-        file.append('Name: staf/staxmonitor/extension/ext-delay' + lineSep)
+        /*file.append('Name: staf/staxmonitor/extension/ext-delay' + lineSep)
         file.append('Extension-Class: com.ibm.staf.service.stax.extension.samples.extdelay.ExtDelay' + lineSep)
-        file.append(lineSep)
+        file.append(lineSep)*/
     }
 
 }
@@ -62,9 +62,6 @@ task staf(type: Jar, dependsOn: stafManifest) {
         from 'MANIFEST.MF'
     }
 
-    /*into('STAX-INF/jars') {
-        from configurations.runtime
-    }*/
 
     into('STAX-INF/classes') {
         from compileJava.destinationDir

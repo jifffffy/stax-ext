@@ -72,7 +72,7 @@ public interface STAXAction
      * method).
      *
      * @param  thread  the STAX-Thread instance where this action is executed
-     * @param  cond    the condition that has been raised
+     * @param  condition    the condition that has been raised
      */
     public void handleCondition(STAXThread thread, STAXCondition condition);
 

@@ -407,6 +407,13 @@ public class STAXFunctionAction extends STAXActionDefaultImpl
                 thread.pySetVar("STAXCurrentXMLFile", getXmlFile());
                 thread.pySetVar("STAXCurrentXMLMachine", getXmlMachine());
 
+                HashMap<String, String> functionBeginMap = new HashMap<String, String>();
+                functionBeginMap.put("type", "function");
+                functionBeginMap.put("status", "begin");
+                functionBeginMap.put("name", fName);
+
+                thread.getJob().generateEvent(STAXFunctionActionFactory.STAX_FUNCTION_EVENT, functionBeginMap);
+
                 thread.pushAction(fAction.cloneAction());
                 fState = FUNCTION_CALLED;
             }
@@ -464,6 +471,13 @@ public class STAXFunctionAction extends STAXActionDefaultImpl
             exitFunction(thread);
             
             thread.pySetVar("STAXResult", Py.None);
+
+            HashMap<String, String> functionEndMap = new HashMap<String, String>();
+            functionEndMap.put("type", "function");
+            functionEndMap.put("status", "end");
+            functionEndMap.put("name", fName);
+
+            thread.getJob().generateEvent(STAXFunctionActionFactory.STAX_FUNCTION_EVENT, functionEndMap);
         }
     }
 

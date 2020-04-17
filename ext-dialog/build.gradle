@@ -1,0 +1,44 @@
+dependencies {
+    compile project(':stax')
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task stafManifest {
+
+    doLast {
+        String lineSep = System.getProperty("line.separator")
+        File file = file('MANIFEST.MF')
+        file.write('')
+        file.append("Manifest-Version: 1.0" + lineSep)
+        file.append(lineSep)
+        file.append("Name: staf/staxinfo/extension" + lineSep)
+        file.append('Extension-Version: 3.3.0' + lineSep)
+        file.append('Extension-Description: Dialog STAX Extensions' + lineSep)
+        file.append('Required-Service-Version: 3.3.0' + lineSep)
+        file.append('Required-Monitor-Version: 3.0.0' + lineSep)
+        file.append(lineSep)
+        file.append('Name: staf/stax/extension/ext-dialog' + lineSep)
+        file.append('Factory-Class: org.jsun.stax.ext.ExtDialogActionFactory' + lineSep)
+        file.append(lineSep)
+    }
+
+}
+
+task staf(type: Jar, dependsOn: stafManifest) {
+
+    manifest {
+        from 'MANIFEST.MF'
+    }
+
+
+    into('STAX-INF/classes') {
+        from compileJava.destinationDir
+    }
+
+    into('STAX-INF/images') {
+        from 'src/main/resources'
+    }
+
+    archiveName = 'ExtDialog.jar'
+}

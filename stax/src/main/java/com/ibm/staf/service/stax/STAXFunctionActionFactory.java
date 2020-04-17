@@ -20,6 +20,7 @@ public class STAXFunctionActionFactory implements STAXActionFactory,
                                                   STAXListRequestHandler,
                                                   STAXQueryRequestHandler
 {
+    public static final String STAX_FUNCTION_EVENT = "Function";
     static final String sFunctionListInfoMapClassName = new String(
         "STAF/Service/STAX/FunctionListInfo");
     static final String sQueryFunctionMapClassName = new String(

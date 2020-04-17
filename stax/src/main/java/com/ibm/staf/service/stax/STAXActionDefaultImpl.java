@@ -13,176 +13,145 @@ import org.w3c.dom.Node;
 import java.util.HashMap;
 import java.util.Vector;
 
-public class STAXActionDefaultImpl implements STAXAction
-{
-    public STAXActionDefaultImpl()
-    { /* Do Nothing */ }
+public class STAXActionDefaultImpl implements STAXAction {
+    public STAXActionDefaultImpl() { /* Do Nothing */ }
 
-    public String getInfo()
-    {
+    public String getInfo() {
         return "";
     }
 
-    public String getDetails()
-    {
+    public String getDetails() {
         return "";
     }
 
-    public void execute(STAXThread thread)
-    { /* Do Nothing */ }
+    public void execute(STAXThread thread) { /* Do Nothing */ }
 
-    public void handleCondition(STAXThread thread, STAXCondition condition)
-    { /* Do Nothing */ }
+    public void handleCondition(STAXThread thread, STAXCondition condition) { /* Do Nothing */ }
 
-    public STAXAction cloneAction()
-    {
+    public STAXAction cloneAction() {
         STAXActionDefaultImpl clone = new STAXActionDefaultImpl();
 
         clone.fElement = fElement;
         clone.fLineNumberMap =
-            new HashMap<String, Vector<String>>(fLineNumberMap);
+                new HashMap<String, Vector<String>>(fLineNumberMap);
         clone.fXmlFile = fXmlFile;
         clone.fXmlMachine = fXmlMachine;
 
         return clone;
     }
 
-    public void setElement(String element)
-    {
+    public void setElement(String element) {
         fElement = element;
     }
 
-    public String getElement()
-    {
+    public String getElement() {
         // Return the root element for this action
 
         return fElement;
     }
 
-    public void setLineNumber(Node root)
-    {
+    public void setLineNumber(Node root) {
         NamedNodeMap attrs = root.getAttributes();
 
         setLineNumber(root.getNodeName(),
-                      STAXUtil.getLineNumberFromAttrs(attrs));
+                STAXUtil.getLineNumberFromAttrs(attrs));
     }
 
     /**
      * Use if need to override the element name in the Node.
      */
-    public void setLineNumber(Node root, String element)
-    {
+    public void setLineNumber(Node root, String element) {
         NamedNodeMap attrs = root.getAttributes();
 
         setLineNumber(element,
-                      STAXUtil.getLineNumberFromAttrs(attrs));
+                STAXUtil.getLineNumberFromAttrs(attrs));
     }
 
 
-    public void setLineNumber(String element, String lineNumber)
-    {
-        if ((fLineNumberMap.size() == 0) && fElement.equals(""))
-        {
+    public void setLineNumber(String element, String lineNumber) {
+        if ((fLineNumberMap.size() == 0) && fElement.equals("")) {
             // Assumes first line number set is for the root element for
             // this action (if the root element is not already set.
             // Other entries in the map are child elements.
             fElement = element;
         }
 
-        synchronized (fLineNumberMap)
-        {
+        synchronized (fLineNumberMap) {
             Vector<String> lineNumbers;
 
-            if (!fLineNumberMap.containsKey(element))
-            {
+            if (!fLineNumberMap.containsKey(element)) {
                 lineNumbers = new Vector<String>();
                 lineNumbers.add(lineNumber);
-            }
-            else
-            {
+            } else {
                 lineNumbers = fLineNumberMap.get(element);
                 lineNumbers.add(lineNumber);
             }
-            
+
             fLineNumberMap.put(element, lineNumbers);
         }
     }
 
-    public String getLineNumber()
-    {
+    public String getLineNumber() {
         // Specifying no element indicates to get the line number for the
         // root element for this action.
 
         return getLineNumber(fElement, 0);
     }
 
-    public String getLineNumber(String element)
-    {
+    public String getLineNumber(String element) {
         return getLineNumber(element, 0);
     }
 
-    public String getLineNumber(String element, int index)
-    {
+    public String getLineNumber(String element, int index) {
         String lineNumber = "Unknown";
 
-        synchronized (fLineNumberMap)
-        {
-            if (fLineNumberMap.containsKey(element))
-            {
-                Vector lineNumbers = (Vector)fLineNumberMap.get(element);
+        synchronized (fLineNumberMap) {
+            if (fLineNumberMap.containsKey(element)) {
+                Vector lineNumbers = (Vector) fLineNumberMap.get(element);
 
                 if (index == -1)
                     index = lineNumbers.size() - 1;
 
-                if (lineNumbers.size() > index)
-                {
-                    lineNumber = (String)lineNumbers.get(index);
+                if (lineNumbers.size() > index) {
+                    lineNumber = (String) lineNumbers.get(index);
                 }
             }
         }
 
         return lineNumber;
     }
-    
+
     // Used to clone line numbers
 
-    public HashMap<String, Vector<String>> getLineNumberMap()
-    {
+    public HashMap<String, Vector<String>> getLineNumberMap() {
         return fLineNumberMap;
     }
 
-    public void setLineNumberMap(HashMap<String, Vector<String>> lineNumberMap)
-    {
+    public void setLineNumberMap(HashMap<String, Vector<String>> lineNumberMap) {
         fLineNumberMap = new HashMap<String, Vector<String>>(lineNumberMap);
     }
 
-    public String getXmlFile()
-    {
+    public String getXmlFile() {
         return fXmlFile;
     }
 
-    public void setXmlFile(String xmlFile)
-    {
+    public void setXmlFile(String xmlFile) {
         fXmlFile = xmlFile;
     }
 
-    public String getXmlMachine()
-    {
+    public String getXmlMachine() {
         return fXmlMachine;
     }
 
-    public void setXmlMachine(String xmlMachine)
-    {
+    public void setXmlMachine(String xmlMachine) {
         fXmlMachine = xmlMachine;
     }
 
-    public void setElementInfo(STAXElementInfo info)
-    {
+    public void setElementInfo(STAXElementInfo info) {
         fElementInfo = info;
     }
 
-    public STAXElementInfo getElementInfo()
-    {
+    public STAXElementInfo getElementInfo() {
         return fElementInfo;
     }
 
@@ -194,5 +163,5 @@ public class STAXActionDefaultImpl implements STAXAction
     // Map containing the line numbers for the root element for this action
     // and, optionally, the line numbers for child elements for this action.
     private HashMap<String, Vector<String>> fLineNumberMap =
-        new HashMap<String, Vector<String>>();
+            new HashMap<String, Vector<String>>();
 }

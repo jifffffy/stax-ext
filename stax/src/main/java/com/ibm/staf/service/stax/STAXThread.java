@@ -13,8 +13,7 @@ import org.python.core.*;
 import java.io.PrintWriter;
 import java.util.*;
 
-public class STAXThread implements STAXThreadCompleteListener
-{
+public class STAXThread implements STAXThreadCompleteListener {
     // Thread states
     public static final int STATE_RUNNABLE = 0;
     public static final int STATE_RUNNING = 1;
@@ -38,11 +37,11 @@ public class STAXThread implements STAXThreadCompleteListener
     public static final int MAX_NON_BLOCKING_ACTIONS = 100;
 
     public static final String THREAD = new String("thread");
-    
+
     // For each thread, import Java and Jython modules and define Jython
     // classes and functions such as the STAXGlobal class and the CloneGlobals
     // function
-    
+
     /* Jython 2.1:
     private static final String THREAD_INIT_PYCODE =
       "from com.ibm.staf import STAFResult as STAFRC \n" +
@@ -105,213 +104,213 @@ public class STAXThread implements STAXThreadCompleteListener
     */
     // Jython 2.5:
     private static final String THREAD_INIT_PYCODE =
-      "from com.ibm.staf import STAFResult as STAFRC\n" +
-      "from com.ibm.staf import STAFUtil\n" +
-      "import STAFMarshalling\n" +
-      "from STAFMarshalling import STAFMapClassDefinition, STAFMarshallingContext\n" +
-      "import copy, types, sys, synchronize\n" +
-      "from java.lang import Object\n" +
-      // Save the Python built-in function "type" and imported copy, types, and
-      // synchronize modules in variables beginning with STAX in case a STAX xml
-      // file sets a variable named type, copy, or types to something else.
-      // Use these STAXxxx names instead in the STAXPythonFunction_CloneGlobals 
-      // function.
-      "STAXBuiltinFunction_type = type\n" +
-      "STAXCopyModule = copy\n" +
-      "STAXTypesModule = types\n" +
-      "STAXSynchronize = synchronize\n" +
-      "\n" +
-      // Note:  If need more debugging on this function, can uncomment the lines
-      // that check if STAXDebugCloneFunction is enabled and print debug info.
-      // By default, if STAXDebugCloneFunction is enabled, it only prints
-      // "CloneFunction: Begin" and "CloneFunction: End" if no issues to show
-      // that this method is called in a thread-safe manner (as well as any
-      // errors if unexpected errors occur).
-      "def STAXPythonFunction_CloneGlobals(STAXGlobals):\n" +
-      "  try:\n" +
-      "    if STAXDebugCloneFunction == 1:\n" +
-      "      print 'CloneFunction: Begin'\n" +
-      "    STAXclone = STAXCopyModule.copy(STAXGlobals)\n" +
-      //   Since no StringMapType, use type(STAXclone) to get its type to skip
-      "    STAXStringMapType = STAXBuiltinFunction_type(STAXclone)\n" +
-      "    for STAXkeyName in STAXclone.keys():\n" +
-      "      try:\n" +
-      //"        if STAXDebugCloneFunction == 1:\n" +
-      //"          print 'CloneFunction: Begin clone of \"%s\"' % (STAXkeyName)\n" +
-      "        STAXkeyType = STAXBuiltinFunction_type(STAXclone[STAXkeyName])\n" +
-      //"        if STAXDebugCloneFunction == 1:\n" +
-      //"          if isinstance(STAXclone[STAXkeyName], Object):\n" +
-      //"            print 'CloneFunction: %s with type %s is a Java object' % (STAXkeyName, STAXkeyType)\n" +
-      //"          else:\n" +
-      //"            print 'CloneFunction: %s with type %s is not a Java object' % (STAXkeyName, STAXkeyType)\n" +
-      "        if (STAXkeyType not in [STAXTypesModule.ModuleType,\n" +
-      "                                STAXTypesModule.FunctionType,\n" +
-      "                                STAXTypesModule.ClassType,\n" +
-      //             Don't perform a deepcopy of PyFile objects (Bug #3506350)
-      "                                STAXTypesModule.FileType,\n" +
-      "                                STAXStringMapType]):\n" +
-      "          try:\n" +
-      //"            if STAXDebugCloneFunction == 1:\n" +
-      //"              print 'CloneFunction: Perform deepcopy'\n" +      
-      "            STAXclone[STAXkeyName] = STAXCopyModule.deepcopy(STAXclone[STAXkeyName])\n" +
-      "          except:\n" +
-      //"            if STAXDebugCloneFunction == 1:\n" +
-      //"              print 'CloneFunction: exception in deepcopy - Ignore'\n" +
-      "            pass  # ignore types that cannot be deepcopied\n" +
-      "        else:\n" +
-      //"          if STAXDebugCloneFunction == 1:\n" +
-      //"            print 'CloneFunction: Do not deepcopy.'\n" +
-      "          if ((STAXkeyType is STAXTypesModule.FunctionType) and\n" +
-      "              (STAXclone[STAXkeyName].func_globals is STAXGlobals)):\n" +    
-      //"            if STAXDebugCloneFunction == 1:\n" +
-      //"              print 'CloneFunction: Perform global function clone'\n" +      
-      //     This section checks to see if the variable is a function that was
-      //     defined at the "global" scope, i.e., not within some other Python
-      //     module.  If so, then it replaces the function definition with one
-      //     that is identical except for the reference to the global variable
-      //     pool, which is redirected to look at the new global variable pool
-      //     being created.  This was necessary, otherwise any variables
-      //     created in the clone are not accessable to functions defined
-      //     before the clone.
-      "            STAXclone[STAXkeyName] = STAXTypesModule.FunctionType(\n" +
-      "              STAXclone[STAXkeyName].func_code,\n" +
-      "              STAXclone,  # globals\n" +
-      "              STAXclone[STAXkeyName].func_name,\n" +
-      "              STAXclone[STAXkeyName].func_defaults,\n" +
-      "              STAXclone[STAXkeyName].func_closure)\n" +
-      //"            if STAXDebugCloneFunction == 1:\n" +
-      //"              print 'CloneFunction: After global function clone'\n" +
-      //"        if STAXDebugCloneFunction == 1:\n" +
-      //"          print 'CloneFunction: End clone of \"%s\"' % (STAXkeyName)\n" +      
-      "      except: # Catch all exceptions in for loop so just skip this variable\n" +
-      "        print 'CloneFunction: Error cloning a variable: ', sys.exc_info()[0], sys.exc_info()[1]\n" +
-      "        print 'CloneClobals: Error occurred cloning key %s with type %s' % (STAXkeyName, STAXkeyType)\n" +
-      "    # End for loop\n" +
-      "    if STAXDebugCloneFunction == 1:\n" +
-      "      print 'CloneFunction: End'\n" +      
-      "    return STAXclone\n" +
-      "  except: # Catch any exception in this function\n" +
-      "    print 'CloneFunction: Unexpected error', sys.exc_info()[0], sys.exc_info()[1]\n" +
-      "    return STAXGlobals\n" +
-      "\n" +
-      // Synchronize the STAXPythonFunction_CloneGlobals function because it
-      // must call the copy.deepcopy method in a thread-safe manner.
-      "STAXPythonFunction_CloneGlobals = STAXSynchronize.make_synchronized(\n" +
-      "  STAXPythonFunction_CloneGlobals)\n" +
-      "\n" +
-      "def STAXPythonFunction_FunctionExists(STAXfunction): \n" +
-      "  return STAXJob.functionExists(STAXfunction) \n" +
-      "\n" +
-      "class STAXUnique: \n" +
-      "  def __init__(self, name): \n" +
-      "    self.name = name \n" +
-      "  def __str__(self): \n" +
-      "    return str(self.name) \n" +
-      "  def __repr__(self): \n" +
-      "    return 'STAXUnique(%s)' % self.name \n" +
-      "\n" +
-      "STAXFunctionError = STAXUnique('STAXFunctionError') \n" +
-      "\n" +
-      "STAXNoResponseFromMachine = " +
-      "STAXUnique('STAXNoResponseFromMachine') \n" +
-      "\n" +
-      "STAXFileCopyError = STAXUnique('STAXFileCopyError') \n" +
-      "\n" +
-      "STAXXMLParseError = STAXUnique('STAXXMLParseError') \n" +
-      "\n" +
-      "STAXImportModeError = STAXUnique('STAXImportModeError') \n" +
-      "\n" +
-      "STAXImportDirectoryError = STAXUnique('STAXImportDirectoryError') \n" +
-      "\n" +
-      "class STAXExceptionSource: \n" +
-      "  def __init__(self, value = None): \n" +
-      "     self.data = value \n" +
-      "  def __str__(self): \n" +
-      "     return 'Source: %s\\n\\n===== Stack Trace =====\\n\\n%s' % (self.data['source'], STAFMarshalling.formatObject(self.data['stackTrace'])) \n" +
-      "  def __repr__(self): \n" +
-      "    return repr(self.data) \n" +
-      "  def __getitem__(self, key): \n" +
-      "    return self.data[key] \n" +
-      "  def getSource(self): \n" +
-      "    return self.data['source'] \n" +
-      "  def getStackTrace(self): \n" +
-      "    return self.data['stackTrace'] \n" +
-      "\n" +
-      "class STAXGlobal: \n" +
-      "\n\n" +
-      "  # Basic customization \n" +
-      "\n\n" +
-      "  # constructor, optional value \n" +
-      "  def __init__(self, value = None): \n" +
-      "    self.data = value \n" +
-      "\n" +
-      "  def __del__(self): \n" +
-      "    del self \n" +
-      "\n" +
-      "  # returns a string representation \n" +
-      "  def __repr__(self): \n" +
-      "    return repr(self.data) \n" +
-      "\n" +
-      "  def __str__(self): \n" +
-      "    return str(self.data) \n" +
-      "\n" +
-      "  def __lt__(self, other): \n" +
-      "    if self.data < other: \n" +
-      "      return 1 \n" +
-      "    else: \n" +
-      "      return 0 \n" +
-      "\n" +
-      "  def __le__(self, other): \n" +
-      "    if self.data <= other: \n" +
-      "      return 1 \n" +
-      "    else: \n" +
-      "      return 0 \n" +
-      "\n" +
-      "  def __eq__(self, other): \n" +
-      "    if self.data == other: \n" +
-      "      return 1 \n" +
-      "    else: \n" +
-      "      return 0 \n" +
-      "\n" +
-      "  def __ne__(self, other): \n" +
-      "    if self.data != other: \n" +
-      "      return 1 \n" +
-      "    else: \n" +
-      "      return 0 \n" +
-      "\n" +
-      "  def __gt__(self, other): \n" +
-      "    if self.data > other: \n" +
-      "      return 1 \n" +
-      "    else: \n" +
-      "      return 0 \n" +
-      "\n" +
-      "  def __ge__(self, other): \n" +
-      "    if self.data >= other: \n" +
-      "      return 1 \n" +
-      "    else: \n" +
-      "      return 0 \n" +
-      "\n" +
-      "  def __cmp__(self, other): \n" +
-      "    return self.data.cmp(other) \n" +
-      "\n" +
-      "  def __hash__(self): \n" +
-      "    try: \n" +
-      "      return hash(self.data) \n" +
-      "    except: \n" +
-      "      # Unhashable type (e.g. list or dictionary) \n" +
-      "      return hash(id(self.data)) \n" +
-      "\n" +
-      "  def __nonzero__(self): \n" +
-      "    if self.data: \n" +
-      "      return 1 \n" +
-      "    else: \n" +
-      "      return 0 \n" +
-      "\n" +
-      "  # Customizing attribute access \n" +
-      "\n" +
-      "  def __getattr__(self, name): \n" +
-      "    return getattr(self.data, name) \n" +
-      "\n" +
+            "from com.ibm.staf import STAFResult as STAFRC\n" +
+                    "from com.ibm.staf import STAFUtil\n" +
+                    "import STAFMarshalling\n" +
+                    "from STAFMarshalling import STAFMapClassDefinition, STAFMarshallingContext\n" +
+                    "import copy, types, sys, synchronize\n" +
+                    "from java.lang import Object\n" +
+                    // Save the Python built-in function "type" and imported copy, types, and
+                    // synchronize modules in variables beginning with STAX in case a STAX xml
+                    // file sets a variable named type, copy, or types to something else.
+                    // Use these STAXxxx names instead in the STAXPythonFunction_CloneGlobals
+                    // function.
+                    "STAXBuiltinFunction_type = type\n" +
+                    "STAXCopyModule = copy\n" +
+                    "STAXTypesModule = types\n" +
+                    "STAXSynchronize = synchronize\n" +
+                    "\n" +
+                    // Note:  If need more debugging on this function, can uncomment the lines
+                    // that check if STAXDebugCloneFunction is enabled and print debug info.
+                    // By default, if STAXDebugCloneFunction is enabled, it only prints
+                    // "CloneFunction: Begin" and "CloneFunction: End" if no issues to show
+                    // that this method is called in a thread-safe manner (as well as any
+                    // errors if unexpected errors occur).
+                    "def STAXPythonFunction_CloneGlobals(STAXGlobals):\n" +
+                    "  try:\n" +
+                    "    if STAXDebugCloneFunction == 1:\n" +
+                    "      print 'CloneFunction: Begin'\n" +
+                    "    STAXclone = STAXCopyModule.copy(STAXGlobals)\n" +
+                    //   Since no StringMapType, use type(STAXclone) to get its type to skip
+                    "    STAXStringMapType = STAXBuiltinFunction_type(STAXclone)\n" +
+                    "    for STAXkeyName in STAXclone.keys():\n" +
+                    "      try:\n" +
+                    //"        if STAXDebugCloneFunction == 1:\n" +
+                    //"          print 'CloneFunction: Begin clone of \"%s\"' % (STAXkeyName)\n" +
+                    "        STAXkeyType = STAXBuiltinFunction_type(STAXclone[STAXkeyName])\n" +
+                    //"        if STAXDebugCloneFunction == 1:\n" +
+                    //"          if isinstance(STAXclone[STAXkeyName], Object):\n" +
+                    //"            print 'CloneFunction: %s with type %s is a Java object' % (STAXkeyName, STAXkeyType)\n" +
+                    //"          else:\n" +
+                    //"            print 'CloneFunction: %s with type %s is not a Java object' % (STAXkeyName, STAXkeyType)\n" +
+                    "        if (STAXkeyType not in [STAXTypesModule.ModuleType,\n" +
+                    "                                STAXTypesModule.FunctionType,\n" +
+                    "                                STAXTypesModule.ClassType,\n" +
+                    //             Don't perform a deepcopy of PyFile objects (Bug #3506350)
+                    "                                STAXTypesModule.FileType,\n" +
+                    "                                STAXStringMapType]):\n" +
+                    "          try:\n" +
+                    //"            if STAXDebugCloneFunction == 1:\n" +
+                    //"              print 'CloneFunction: Perform deepcopy'\n" +
+                    "            STAXclone[STAXkeyName] = STAXCopyModule.deepcopy(STAXclone[STAXkeyName])\n" +
+                    "          except:\n" +
+                    //"            if STAXDebugCloneFunction == 1:\n" +
+                    //"              print 'CloneFunction: exception in deepcopy - Ignore'\n" +
+                    "            pass  # ignore types that cannot be deepcopied\n" +
+                    "        else:\n" +
+                    //"          if STAXDebugCloneFunction == 1:\n" +
+                    //"            print 'CloneFunction: Do not deepcopy.'\n" +
+                    "          if ((STAXkeyType is STAXTypesModule.FunctionType) and\n" +
+                    "              (STAXclone[STAXkeyName].func_globals is STAXGlobals)):\n" +
+                    //"            if STAXDebugCloneFunction == 1:\n" +
+                    //"              print 'CloneFunction: Perform global function clone'\n" +
+                    //     This section checks to see if the variable is a function that was
+                    //     defined at the "global" scope, i.e., not within some other Python
+                    //     module.  If so, then it replaces the function definition with one
+                    //     that is identical except for the reference to the global variable
+                    //     pool, which is redirected to look at the new global variable pool
+                    //     being created.  This was necessary, otherwise any variables
+                    //     created in the clone are not accessable to functions defined
+                    //     before the clone.
+                    "            STAXclone[STAXkeyName] = STAXTypesModule.FunctionType(\n" +
+                    "              STAXclone[STAXkeyName].func_code,\n" +
+                    "              STAXclone,  # globals\n" +
+                    "              STAXclone[STAXkeyName].func_name,\n" +
+                    "              STAXclone[STAXkeyName].func_defaults,\n" +
+                    "              STAXclone[STAXkeyName].func_closure)\n" +
+                    //"            if STAXDebugCloneFunction == 1:\n" +
+                    //"              print 'CloneFunction: After global function clone'\n" +
+                    //"        if STAXDebugCloneFunction == 1:\n" +
+                    //"          print 'CloneFunction: End clone of \"%s\"' % (STAXkeyName)\n" +
+                    "      except: # Catch all exceptions in for loop so just skip this variable\n" +
+                    "        print 'CloneFunction: Error cloning a variable: ', sys.exc_info()[0], sys.exc_info()[1]\n" +
+                    "        print 'CloneClobals: Error occurred cloning key %s with type %s' % (STAXkeyName, STAXkeyType)\n" +
+                    "    # End for loop\n" +
+                    "    if STAXDebugCloneFunction == 1:\n" +
+                    "      print 'CloneFunction: End'\n" +
+                    "    return STAXclone\n" +
+                    "  except: # Catch any exception in this function\n" +
+                    "    print 'CloneFunction: Unexpected error', sys.exc_info()[0], sys.exc_info()[1]\n" +
+                    "    return STAXGlobals\n" +
+                    "\n" +
+                    // Synchronize the STAXPythonFunction_CloneGlobals function because it
+                    // must call the copy.deepcopy method in a thread-safe manner.
+                    "STAXPythonFunction_CloneGlobals = STAXSynchronize.make_synchronized(\n" +
+                    "  STAXPythonFunction_CloneGlobals)\n" +
+                    "\n" +
+                    "def STAXPythonFunction_FunctionExists(STAXfunction): \n" +
+                    "  return STAXJob.functionExists(STAXfunction) \n" +
+                    "\n" +
+                    "class STAXUnique: \n" +
+                    "  def __init__(self, name): \n" +
+                    "    self.name = name \n" +
+                    "  def __str__(self): \n" +
+                    "    return str(self.name) \n" +
+                    "  def __repr__(self): \n" +
+                    "    return 'STAXUnique(%s)' % self.name \n" +
+                    "\n" +
+                    "STAXFunctionError = STAXUnique('STAXFunctionError') \n" +
+                    "\n" +
+                    "STAXNoResponseFromMachine = " +
+                    "STAXUnique('STAXNoResponseFromMachine') \n" +
+                    "\n" +
+                    "STAXFileCopyError = STAXUnique('STAXFileCopyError') \n" +
+                    "\n" +
+                    "STAXXMLParseError = STAXUnique('STAXXMLParseError') \n" +
+                    "\n" +
+                    "STAXImportModeError = STAXUnique('STAXImportModeError') \n" +
+                    "\n" +
+                    "STAXImportDirectoryError = STAXUnique('STAXImportDirectoryError') \n" +
+                    "\n" +
+                    "class STAXExceptionSource: \n" +
+                    "  def __init__(self, value = None): \n" +
+                    "     self.data = value \n" +
+                    "  def __str__(self): \n" +
+                    "     return 'Source: %s\\n\\n===== Stack Trace =====\\n\\n%s' % (self.data['source'], STAFMarshalling.formatObject(self.data['stackTrace'])) \n" +
+                    "  def __repr__(self): \n" +
+                    "    return repr(self.data) \n" +
+                    "  def __getitem__(self, key): \n" +
+                    "    return self.data[key] \n" +
+                    "  def getSource(self): \n" +
+                    "    return self.data['source'] \n" +
+                    "  def getStackTrace(self): \n" +
+                    "    return self.data['stackTrace'] \n" +
+                    "\n" +
+                    "class STAXGlobal: \n" +
+                    "\n\n" +
+                    "  # Basic customization \n" +
+                    "\n\n" +
+                    "  # constructor, optional value \n" +
+                    "  def __init__(self, value = None): \n" +
+                    "    self.data = value \n" +
+                    "\n" +
+                    "  def __del__(self): \n" +
+                    "    del self \n" +
+                    "\n" +
+                    "  # returns a string representation \n" +
+                    "  def __repr__(self): \n" +
+                    "    return repr(self.data) \n" +
+                    "\n" +
+                    "  def __str__(self): \n" +
+                    "    return str(self.data) \n" +
+                    "\n" +
+                    "  def __lt__(self, other): \n" +
+                    "    if self.data < other: \n" +
+                    "      return 1 \n" +
+                    "    else: \n" +
+                    "      return 0 \n" +
+                    "\n" +
+                    "  def __le__(self, other): \n" +
+                    "    if self.data <= other: \n" +
+                    "      return 1 \n" +
+                    "    else: \n" +
+                    "      return 0 \n" +
+                    "\n" +
+                    "  def __eq__(self, other): \n" +
+                    "    if self.data == other: \n" +
+                    "      return 1 \n" +
+                    "    else: \n" +
+                    "      return 0 \n" +
+                    "\n" +
+                    "  def __ne__(self, other): \n" +
+                    "    if self.data != other: \n" +
+                    "      return 1 \n" +
+                    "    else: \n" +
+                    "      return 0 \n" +
+                    "\n" +
+                    "  def __gt__(self, other): \n" +
+                    "    if self.data > other: \n" +
+                    "      return 1 \n" +
+                    "    else: \n" +
+                    "      return 0 \n" +
+                    "\n" +
+                    "  def __ge__(self, other): \n" +
+                    "    if self.data >= other: \n" +
+                    "      return 1 \n" +
+                    "    else: \n" +
+                    "      return 0 \n" +
+                    "\n" +
+                    "  def __cmp__(self, other): \n" +
+                    "    return self.data.cmp(other) \n" +
+                    "\n" +
+                    "  def __hash__(self): \n" +
+                    "    try: \n" +
+                    "      return hash(self.data) \n" +
+                    "    except: \n" +
+                    "      # Unhashable type (e.g. list or dictionary) \n" +
+                    "      return hash(id(self.data)) \n" +
+                    "\n" +
+                    "  def __nonzero__(self): \n" +
+                    "    if self.data: \n" +
+                    "      return 1 \n" +
+                    "    else: \n" +
+                    "      return 0 \n" +
+                    "\n" +
+                    "  # Customizing attribute access \n" +
+                    "\n" +
+                    "  def __getattr__(self, name): \n" +
+                    "    return getattr(self.data, name) \n" +
+                    "\n" +
       /* Not implementing __setattr__ and __delattr__ yet
       "  # Not sure if these are the correct implementations \n" +
       "  def __setattr__(self, name, value): \n" +
@@ -321,233 +320,232 @@ public class STAXThread implements STAXThreadCompleteListener
       "    del self.__dict__[name] \n" +
       "\n" +
       */
-      "  # Emulating callable objects \n" +
-      "\n" +
-      "  # Not implementing __call__ \n" +
-      "\n" +
-      "  # Emulating container types \n" +
-      "\n" + 
-      "  def __len__(self): \n" +
-      "    return len(self.data) \n" +
-      "\n" +
-      "  def __getitem__(self, key): \n" +
-      "    return self.data[key] \n" +
-      "\n" + 
-      "  def __setitem__(self, key, value): \n" +
-      "    self.data[key] = value \n" +  
-      "\n" +
-      "  def __delitem__(self, key): \n" +
-      "    del self.data[key] \n" +
-      "\n" +
-      // Jython 2.5: iter() is new in Python 2.2 so uncomment if using 2.5+
-      "  def __iter__(self): \n" +
-      "    return iter(self.data) \n" +
-      "\n" +
-      "  def __contains__(self, item): \n" +
-      "    return item in self.data \n" +
-      "\n" +
-      "  # Additional methods for emulation of sequence types \n" +
-      "  # Note: Once the getattr method was added, also had to add \n" +
-      "  # the slice methods (even though they are deprecated) \n" +
-      "\n" +
-      "  def __getslice__(self, i, j): \n" +
-      "    return self.data[max(0, i):max(0, j):]" +
-      "\n" +
-      "  def __setslice__(self, i, j, seq): \n" +
-      "    self.data[max(0, i):max(0, j):] = seq \n" +
-      "\n" +
-      "  def __delslice__(self, i, j): \n" +
-      "    del self.data[max(0, i):max(0, j):]" +
-      "\n" +
-      "  # Emulating numeric types \n" +
-      "  def __add__(self, other): \n" +
-      "    return self.data + other \n" +
-      "\n" +
-      "  def __sub__(self, other): \n" +
-      "    return self.data - other \n" +
-      "\n" +
-      "  def __mul__(self, other): \n" +
-      "    return self.data * other \n" +
-      "\n" +
-      "  # Commented out - get SyntaxError when run \n" +
-      "  # def __floordiv__(self, other): \n" +
-      "  #   return self.data // other \n" +
-      "\n" +
-      "  def __mod__(self, other): \n" +
-      "    return self.data % other \n" +
-      "\n" +
-      "  def __divmod__(self, other): \n" +
-      "    return self.data.divmod(other) \n" +
-      "\n" +
-      "  def __pow__(self, other, modulo=None): \n" +
-      "    return self.data.pow(other)      # ??? modulo \n" +
-      "\n" +
-      "  def __lshift__(self, other): \n" +
-      "    return self.data << other \n" +
-      "\n" +
-      "  def __rshift__(self, other): \n" +
-      "    return self.data >> other \n" +
-      "\n" +
-      "  def __and__(self, other): \n" +
-      "    return self.data & other \n" +
-      "\n" +
-      "  def __xor__(self, other): \n" +
-      "    return self.data ^ other \n" +
-      "\n" +
-      "  def __or__(self, other): \n" +
-      "    return self.data | other \n" +
-      "\n" +
-      "  def __div__(self, other): \n" +
-      "    return self.data / other \n" +
-      "\n" +
-      "  def __truediv__(self, other): \n" +
-      "    return self.data / other \n" +
-      "\n" + 
-      "  def __radd__(self, other): \n" +
-      "    return other + self.data \n" +
-      "\n" + 
-      "  def __rsub__(self, other): \n" +
-      "    return other - self.data \n" +
-      "\n" + 
-      "  def __rmul__(self, other): \n" +
-      "    return other * self.data \n" +
-      "\n" + 
-      "  def __rdiv__(self, other): \n" +
-      "    return other / self.data \n" +
-      "\n" + 
-      "  def __rmod__(self, other): \n" +
-      "    return other % self.data \n" +
-      "\n" + 
-      "  def __rdivmod__(self, other): \n" +
-      "    return other.divmod(self.data) \n" +
-      "\n" + 
-      "  def __rpow__(self, other): \n" +
-      "    return other.pow(self.data) \n" +
-      "\n" + 
-      "  def __rlshift__(self, other): \n" +
-      "    return other << self.data \n" +
-      "\n" + 
-      "  def __rrshift__(self, other): \n" +
-      "    return other >> self.data \n" +
-      "\n" + 
-      "  def __rand__(self, other): \n" +
-      "    return other | self.data \n" +
-      "\n" + 
-      "  def __rxor__(self, other): \n" +
-      "    return other ^ self.data \n" +
-      "\n" + 
-      "  def __ror__(self, other): \n" +
-      "    return other | self.data \n" +
-      "\n" + 
-      "  def __iadd__(self, other): \n" +
-      "    self.data += other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __isub__(self, other): \n" +
-      "    self.data -= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __imul__(self, other): \n" +
-      "    self.data *= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __idiv__(self, other): \n" +
-      "    self.data /= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __imod__(self, other): \n" +
-      "    self.data %= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __ipow__(self, other): \n" +
-      "    self.data **= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __ilshift__(self, other): \n" +
-      "    self.data <<= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __irshift__(self, other): \n" +
-      "    self.data >>= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __iand__(self, other): \n" +
-      "    self.data &= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __ixor__(self, other): \n" +
-      "    self.data ^= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __ior__(self, other): \n" +
-      "    self.data |= other \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __neg__(self): \n" +
-      "    self.data = -self.data \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __pos__(self): \n" +
-      "    self.data = +self.data \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __abs__(self): \n" +
-      "    self.data = abs(self.data) \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __invert__(self): \n" +
-      "    self.data = ~self.data \n" +
-      "    return self \n" +
-      "\n" + 
-      "  def __complex__(self): \n" +
-      "    return complex(self.data) \n" +
-      "\n" + 
-      "  def __int__(self): \n" +
-      "    return int(self.data) \n" +
-      "\n" + 
-      "  def __long__(self): \n" +
-      "    return long(self.data) \n" +
-      "\n" + 
-      "  def __float__(self): \n" +
-      "    return float(self.data) \n" +
-      "\n" + 
-      "  def __oct__(self): \n" +
-      "    return oct(self.data) \n" +
-      "\n" + 
-      "  def __hex__(self): \n" +
-      "    return hex(self.data) \n" +
-      "\n" + 
-      "  # XXX: Currently not defining __coerce__(self, other) \n" +
-      "\n" +
-      "  # Providing set and get methods \n" +
-      "\n" +
-      "  def set(self, value): \n" +    
-      "    self.data = value \n" +
-      "\n" +
-      "  def get(self): \n" +
-      "    return self.data \n" +
-      "\n" +
-      "  # Implementing deepcopy so will be global \n" +
-      "  def __deepcopy__(self): \n" +
-      "    return self \n" +
-      "\n" +
-      "  # Providing an append method \n" +
-      "  def append(self, other): \n" +
-      "    self.data.append(other) \n" +
-      "    return self \n" +
-      "\n" +
-      "  # Provide a stafMarshall method \n" +
-      "  def stafMarshall(self, context): \n" +
-      "    import STAFMarshalling \n" +
-      "    return STAFMarshalling.marshall(self.data, context) \n" +
-      "";
+                    "  # Emulating callable objects \n" +
+                    "\n" +
+                    "  # Not implementing __call__ \n" +
+                    "\n" +
+                    "  # Emulating container types \n" +
+                    "\n" +
+                    "  def __len__(self): \n" +
+                    "    return len(self.data) \n" +
+                    "\n" +
+                    "  def __getitem__(self, key): \n" +
+                    "    return self.data[key] \n" +
+                    "\n" +
+                    "  def __setitem__(self, key, value): \n" +
+                    "    self.data[key] = value \n" +
+                    "\n" +
+                    "  def __delitem__(self, key): \n" +
+                    "    del self.data[key] \n" +
+                    "\n" +
+                    // Jython 2.5: iter() is new in Python 2.2 so uncomment if using 2.5+
+                    "  def __iter__(self): \n" +
+                    "    return iter(self.data) \n" +
+                    "\n" +
+                    "  def __contains__(self, item): \n" +
+                    "    return item in self.data \n" +
+                    "\n" +
+                    "  # Additional methods for emulation of sequence types \n" +
+                    "  # Note: Once the getattr method was added, also had to add \n" +
+                    "  # the slice methods (even though they are deprecated) \n" +
+                    "\n" +
+                    "  def __getslice__(self, i, j): \n" +
+                    "    return self.data[max(0, i):max(0, j):]" +
+                    "\n" +
+                    "  def __setslice__(self, i, j, seq): \n" +
+                    "    self.data[max(0, i):max(0, j):] = seq \n" +
+                    "\n" +
+                    "  def __delslice__(self, i, j): \n" +
+                    "    del self.data[max(0, i):max(0, j):]" +
+                    "\n" +
+                    "  # Emulating numeric types \n" +
+                    "  def __add__(self, other): \n" +
+                    "    return self.data + other \n" +
+                    "\n" +
+                    "  def __sub__(self, other): \n" +
+                    "    return self.data - other \n" +
+                    "\n" +
+                    "  def __mul__(self, other): \n" +
+                    "    return self.data * other \n" +
+                    "\n" +
+                    "  # Commented out - get SyntaxError when run \n" +
+                    "  # def __floordiv__(self, other): \n" +
+                    "  #   return self.data // other \n" +
+                    "\n" +
+                    "  def __mod__(self, other): \n" +
+                    "    return self.data % other \n" +
+                    "\n" +
+                    "  def __divmod__(self, other): \n" +
+                    "    return self.data.divmod(other) \n" +
+                    "\n" +
+                    "  def __pow__(self, other, modulo=None): \n" +
+                    "    return self.data.pow(other)      # ??? modulo \n" +
+                    "\n" +
+                    "  def __lshift__(self, other): \n" +
+                    "    return self.data << other \n" +
+                    "\n" +
+                    "  def __rshift__(self, other): \n" +
+                    "    return self.data >> other \n" +
+                    "\n" +
+                    "  def __and__(self, other): \n" +
+                    "    return self.data & other \n" +
+                    "\n" +
+                    "  def __xor__(self, other): \n" +
+                    "    return self.data ^ other \n" +
+                    "\n" +
+                    "  def __or__(self, other): \n" +
+                    "    return self.data | other \n" +
+                    "\n" +
+                    "  def __div__(self, other): \n" +
+                    "    return self.data / other \n" +
+                    "\n" +
+                    "  def __truediv__(self, other): \n" +
+                    "    return self.data / other \n" +
+                    "\n" +
+                    "  def __radd__(self, other): \n" +
+                    "    return other + self.data \n" +
+                    "\n" +
+                    "  def __rsub__(self, other): \n" +
+                    "    return other - self.data \n" +
+                    "\n" +
+                    "  def __rmul__(self, other): \n" +
+                    "    return other * self.data \n" +
+                    "\n" +
+                    "  def __rdiv__(self, other): \n" +
+                    "    return other / self.data \n" +
+                    "\n" +
+                    "  def __rmod__(self, other): \n" +
+                    "    return other % self.data \n" +
+                    "\n" +
+                    "  def __rdivmod__(self, other): \n" +
+                    "    return other.divmod(self.data) \n" +
+                    "\n" +
+                    "  def __rpow__(self, other): \n" +
+                    "    return other.pow(self.data) \n" +
+                    "\n" +
+                    "  def __rlshift__(self, other): \n" +
+                    "    return other << self.data \n" +
+                    "\n" +
+                    "  def __rrshift__(self, other): \n" +
+                    "    return other >> self.data \n" +
+                    "\n" +
+                    "  def __rand__(self, other): \n" +
+                    "    return other | self.data \n" +
+                    "\n" +
+                    "  def __rxor__(self, other): \n" +
+                    "    return other ^ self.data \n" +
+                    "\n" +
+                    "  def __ror__(self, other): \n" +
+                    "    return other | self.data \n" +
+                    "\n" +
+                    "  def __iadd__(self, other): \n" +
+                    "    self.data += other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __isub__(self, other): \n" +
+                    "    self.data -= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __imul__(self, other): \n" +
+                    "    self.data *= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __idiv__(self, other): \n" +
+                    "    self.data /= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __imod__(self, other): \n" +
+                    "    self.data %= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __ipow__(self, other): \n" +
+                    "    self.data **= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __ilshift__(self, other): \n" +
+                    "    self.data <<= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __irshift__(self, other): \n" +
+                    "    self.data >>= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __iand__(self, other): \n" +
+                    "    self.data &= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __ixor__(self, other): \n" +
+                    "    self.data ^= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __ior__(self, other): \n" +
+                    "    self.data |= other \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __neg__(self): \n" +
+                    "    self.data = -self.data \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __pos__(self): \n" +
+                    "    self.data = +self.data \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __abs__(self): \n" +
+                    "    self.data = abs(self.data) \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __invert__(self): \n" +
+                    "    self.data = ~self.data \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  def __complex__(self): \n" +
+                    "    return complex(self.data) \n" +
+                    "\n" +
+                    "  def __int__(self): \n" +
+                    "    return int(self.data) \n" +
+                    "\n" +
+                    "  def __long__(self): \n" +
+                    "    return long(self.data) \n" +
+                    "\n" +
+                    "  def __float__(self): \n" +
+                    "    return float(self.data) \n" +
+                    "\n" +
+                    "  def __oct__(self): \n" +
+                    "    return oct(self.data) \n" +
+                    "\n" +
+                    "  def __hex__(self): \n" +
+                    "    return hex(self.data) \n" +
+                    "\n" +
+                    "  # XXX: Currently not defining __coerce__(self, other) \n" +
+                    "\n" +
+                    "  # Providing set and get methods \n" +
+                    "\n" +
+                    "  def set(self, value): \n" +
+                    "    self.data = value \n" +
+                    "\n" +
+                    "  def get(self): \n" +
+                    "    return self.data \n" +
+                    "\n" +
+                    "  # Implementing deepcopy so will be global \n" +
+                    "  def __deepcopy__(self): \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  # Providing an append method \n" +
+                    "  def append(self, other): \n" +
+                    "    self.data.append(other) \n" +
+                    "    return self \n" +
+                    "\n" +
+                    "  # Provide a stafMarshall method \n" +
+                    "  def stafMarshall(self, context): \n" +
+                    "    import STAFMarshalling \n" +
+                    "    return STAFMarshalling.marshall(self.data, context) \n" +
+                    "";
 
     private STAXThread() { /* Do Nothing */ }
 
     // This creates another first-level thread for the job
 
-    public STAXThread(STAXJob job)
-    {
+    public STAXThread(STAXJob job) {
         fJob = job;
         fThreadNumber = job.getNextThreadNumber();
 
@@ -558,14 +556,14 @@ public class STAXThread implements STAXThreadCompleteListener
 
         PySystemState pySystemState = new PySystemState();
         fPythonInterpreter = new STAXPythonInterpreter(
-            null, pySystemState, fJob);
+                null, pySystemState, fJob);
 
         fPythonInterpreter.set("STAXThreadID", new Integer(fThreadNumber));
         fPythonInterpreter.exec("STAXTestcaseStack = []");
         fPythonInterpreter.set("STAXCurrentTestcase", Py.None);
         fPythonInterpreter.exec("STAXBlockStack = []");
         fPythonInterpreter.set("STAXCurrentBlock", Py.None);
-        
+
         if (fJob.getSTAX().getDebugCloneFunction())
             fPythonInterpreter.set("STAXDebugCloneFunction", new Integer(1));
         else
@@ -579,13 +577,12 @@ public class STAXThread implements STAXThreadCompleteListener
 
         // Get the current date and time and set as the starting date/time
         fStartTimestamp = new STAXTimestamp();
-        
-        if (fJob.getSTAX().getDebugThread())
-        {
+
+        if (fJob.getSTAX().getDebugThread()) {
             // Note: The Job ID has not yet been assigned to the job yet
             STAX.logToJVMLog(
-                "Debug", 0, fThreadNumber, "STAXThread: Init");
-        }        
+                    "Debug", 0, fThreadNumber, "STAXThread: Init");
+        }
     }
 
     //
@@ -594,106 +591,98 @@ public class STAXThread implements STAXThreadCompleteListener
 
     /**
      * Creates a child thread of this thread with a new Python Interpreter.
-     * 
+     * <p>
      * This method is the same as the createChildThread2() method except it
      * does not throw an exception if it exceeds maximum number of threads
      * allowed.
-     */ 
-    public STAXThread createChildThread()
-    {
+     */
+    public STAXThread createChildThread() {
         return createChildThread(false);
     }
 
     /**
      * Creates a child thread of this thread with a new Python Interpreter.
-     * 
+     * <p>
      * This method is the same as the createChildThread() method except that
      * it throws an exception if it exceeds the maximum number of threads
      * allowed.
-     * 
+     * <p>
      * Note: This is called by actions like STAXParallelInterateAction and
      * STAXParallelAction so that if they try to run too many actions in
      * parallel, it will throw an exception if exceeds the maximum number of
      * threads allowed.
-     */ 
-    public STAXThread createChildThread2() throws STAXExceedsMaxThreadsException
-    {
+     */
+    public STAXThread createChildThread2() throws STAXExceedsMaxThreadsException {
         return createChildThread2(false);
     }
 
     /**
      * Creates a child thread of this thread, adding the thread to the job's
      * thread map and to the parent thread's child thread set.
-     * 
+     * <p>
      * This method is the same as the createChildThread2 method except it does
      * not throw an exception if it exceeds maximum number of threads allowed.
-     */ 
-    public STAXThread createChildThread(boolean useSamePyInterpreter)
-    {
+     */
+    public STAXThread createChildThread(boolean useSamePyInterpreter) {
         STAXThread child = initChildThread(useSamePyInterpreter);
 
         fJob.addThread(child);
 
         child.addCompletionNotifiee(this);
-        
-        synchronized (fChildThreadSet)
-        {
+
+        synchronized (fChildThreadSet) {
             fChildThreadSet.add(child.getThreadNumberAsInteger());
         }
-        
+
         return child;
     }
-    
+
     /**
      * Creates a child thread of this thread, adding the thread to the job's
      * thread map and to the parent thread's child thread set.
-     * 
+     * <p>
      * This method is the same as the createChildThread method except that it
      * throws an exception if it exceeds the maximum number of threads allowed.
-     */ 
+     */
     public STAXThread createChildThread2(boolean useSamePyInterpreter)
-        throws STAXExceedsMaxThreadsException
-    {
+            throws STAXExceedsMaxThreadsException {
         STAXThread child = initChildThread(useSamePyInterpreter);
 
         fJob.addThreadIfDoesNotExceedMax(child);
 
         child.addCompletionNotifiee(this);
-        
-        synchronized (fChildThreadSet)
-        {
+
+        synchronized (fChildThreadSet) {
             fChildThreadSet.add(child.getThreadNumberAsInteger());
         }
-        
+
         return child;
     }
-    
+
     /**
      * Initializes a child thread of this thread.
      * Called by the createChildThread and createChildThread2 methods.
      */
-    private STAXThread initChildThread(boolean useSamePyInterpreter)
-    {
+    private STAXThread initChildThread(boolean useSamePyInterpreter) {
         STAXThread child = new STAXThread();
 
         child.fJob = fJob;
         child.fThreadNumber = fJob.getNextThreadNumber();
         child.fParent = this;
         child.fSignalHandlerMap =
-            new HashMap<String, STAXAction>(fSignalHandlerMap);
+                new HashMap<String, STAXAction>(fSignalHandlerMap);
         //  (HashMap<String, STAXAction>)fSignalHandlerMap.clone();
         child.fBreakpointCondition = fBreakpointCondition;
 
-        synchronized (fPythonInterpreter)
-        {
+        synchronized (fPythonInterpreter) {
             if (!useSamePyInterpreter)
                 child.fPythonInterpreter = fPythonInterpreter.clonePyi();
             else
                 child.fPythonInterpreter = fPythonInterpreter;
         }
 
-        child.fPythonInterpreter.set("STAXThreadID", 
-                                     new Integer(child.fThreadNumber));
+        child.fPythonInterpreter.set("STAXThreadID",
+                new Integer(child.fThreadNumber));
 
         // Assign the parent hierarchy string for the child thread.
         // For example, if this child's parent thread id is 5 and its
@@ -717,45 +706,40 @@ public class STAXThread implements STAXThreadCompleteListener
     // Note: When using the visitChild function, do not try to modify the
     //       iterator passed to you, as it will be null
 
-    public void visitChildren(STAXVisitor visitor)
-    {
-        synchronized (fChildThreadSet)
-        {
-            for (Integer threadNumber : fChildThreadSet)
-            {
+    public void visitChildren(STAXVisitor visitor) {
+        synchronized (fChildThreadSet) {
+            for (Integer threadNumber : fChildThreadSet) {
                 visitor.visit(fJob.getThread(threadNumber), null);
             }
         }
     }
 
-    public STAXThread getParentThread() { return fParent; }
+    public STAXThread getParentThread() {
+        return fParent;
+    }
 
-    public STAXPythonInterpreter getPythonInterpreter()
-    {
-        synchronized(fPythonInterpreter)
-        {
+    public STAXPythonInterpreter getPythonInterpreter() {
+        synchronized (fPythonInterpreter) {
             return fPythonInterpreter;
         }
     }
 
-    public void setPythonInterpreter(STAXPythonInterpreter pyi)
-    {
-        synchronized(fPythonInterpreter)
-        {
+    public void setPythonInterpreter(STAXPythonInterpreter pyi) {
+        synchronized (fPythonInterpreter) {
             fPythonInterpreter = pyi;
         }
     }
-    
+
     /**
      * Set the PythonInterpreter's stdout to a custom output stream.
-     * This allows the custom output stream to redirect the output 
+     * This allows the custom output stream to redirect the output
      * to the STAX Job Log and/or send a message to the STAX Monitor,
      * or reformat the output (prepend timestamp and job ID).
+     *
      * @param out A STAXPythonOutput object representing the custom output
-     * stream for the STAX job
+     *            stream for the STAX job
      */
-    public void setPythonInterpreterStdout(STAXPythonOutput out)
-    {
+    public void setPythonInterpreterStdout(STAXPythonOutput out) {
         // Must set the autoFlush boolean parameter to true so that the
         // output from each Jython print statement will appear as a separate
         // entry in a message logged in the STAX Job Log and/or in a message
@@ -765,14 +749,14 @@ public class STAXThread implements STAXThreadCompleteListener
 
     /**
      * Set the PythonInterpreter's stderr to a custom output stream.
-     * This allows the custom output stream to redirect the output 
+     * This allows the custom output stream to redirect the output
      * to the STAX Job Log and/or send a message to the STAX Monitor,
      * or reformat the output (prepend timestamp and job ID).
+     *
      * @param out A STAXPythonOutput object representing the custom output
-     * stream for the STAX job
+     *            stream for the STAX job
      */
-    public void setPythonInterpreterStderr(STAXPythonOutput out)
-    {
+    public void setPythonInterpreterStderr(STAXPythonOutput out) {
         // Must set the autoFlush boolean parameter to true so that the
         // output from each Jython print statement will appear as a separate
         // entry in a message logged in the STAX Job Log and/or in a message
@@ -784,21 +768,27 @@ public class STAXThread implements STAXThreadCompleteListener
     // Miscellaneous information functions
     //
 
-    public STAXJob getJob() { return fJob; }
+    public STAXJob getJob() {
+        return fJob;
+    }
 
-    public int getThreadNumber() { return fThreadNumber; }
+    public int getThreadNumber() {
+        return fThreadNumber;
+    }
 
-    public Integer getThreadNumberAsInteger()
-    { return new Integer(fThreadNumber); }
+    public Integer getThreadNumberAsInteger() {
+        return new Integer(fThreadNumber);
+    }
 
-    public STAXTimestamp getStartTimestamp() { return fStartTimestamp; }
-    
+    public STAXTimestamp getStartTimestamp() {
+        return fStartTimestamp;
+    }
+
     //
     // Completion notification function
     //
 
-    public void addCompletionNotifiee(STAXThreadCompleteListener listener)
-    {
+    public void addCompletionNotifiee(STAXThreadCompleteListener listener) {
         fCompletionNotifiees.addLast(listener);
     }
 
@@ -807,69 +797,52 @@ public class STAXThread implements STAXThreadCompleteListener
     //
 
     // Set a Jython variable (e.g. RC, STAFResult) to a specified object.
- 
-    public void pySetVar(String varName, Object value)
-    {
-        synchronized(fPythonInterpreter)
-        {
-            try
-            {
+
+    public void pySetVar(String varName, Object value) {
+        synchronized (fPythonInterpreter) {
+            try {
                 fPythonInterpreter.set(varName, value);
-            }
-            catch (PyException e)
-            {
+            } catch (PyException e) {
                 STAX.logToJVMLog(
-                    "Error", getJob().getJobNumber(), fThreadNumber,
-                    "STAXThread::pySetVar() " +
-                    "PyException caught setting var=" + varName +
-                    " to value=" + value + e.toString());
-            } 
+                        "Error", getJob().getJobNumber(), fThreadNumber,
+                        "STAXThread::pySetVar() " +
+                                "PyException caught setting var=" + varName +
+                                " to value=" + value + e.toString());
+            }
         }
     }
 
     // Execute Python code.
- 
-    public void pyExec(String value) throws STAXPythonEvaluationException
-    {
-        try
-        {
-            if (STAX.CACHE_PYTHON_CODE)
-            {
+
+    public void pyExec(String value) throws STAXPythonEvaluationException {
+        try {
+            if (STAX.CACHE_PYTHON_CODE) {
                 PyCode codeObject = fJob.getCompiledPyCode(value, "exec");
 
-                synchronized(fPythonInterpreter)
-                {
+                synchronized (fPythonInterpreter) {
                     fPythonInterpreter.exec(codeObject);
                 }
-            }
-            else
-            {
-                synchronized(fPythonInterpreter)
-                {
+            } else {
+                synchronized (fPythonInterpreter) {
                     fPythonInterpreter.exec(value);
                 }
             }
-        }
-        catch (PyException e)
-        {
+        } catch (PyException e) {
             throw new STAXPythonEvaluationException(e.toString());
-        } 
+        }
     }
-    
+
     // Compile Python code (or get the compiled Jython code for the specified
     // code string from the cache if already compiled).
     // Note that we cache compiled Jython code so that if it is used more
     // than once, it eliminates the overhead of recompiling the code string
     // each time it is executed.
 
-    public PyObject pyCompile(String codeString)
-    {
-        if (STAX.CACHE_PYTHON_CODE)
-        {
+    public PyObject pyCompile(String codeString) {
+        if (STAX.CACHE_PYTHON_CODE) {
             PyCode codeObject = fJob.getCompiledPyCode(codeString, "eval");
 
-            synchronized(fPythonInterpreter)
-            {
+            synchronized (fPythonInterpreter) {
                 /* Jython 2.1:
                 fPythonInterpreter.exec(codeObject);
                 return fPythonInterpreter.get("STAXPyEvalResult");
@@ -877,80 +850,61 @@ public class STAXThread implements STAXThreadCompleteListener
                 // Jython 2.5:
                 return fPythonInterpreter.eval(codeObject);
             }
-        }
-        else
-        {
-            synchronized(fPythonInterpreter)
-            {
+        } else {
+            synchronized (fPythonInterpreter) {
                 return fPythonInterpreter.eval(codeString);
             }
         }
     }
 
     // Evaluate a value using Jython and return a PyObject result.
-     
-    public PyObject pyObjectEval(String value) 
-        throws STAXPythonEvaluationException
-    {
-        try 
-        {
+
+    public PyObject pyObjectEval(String value)
+            throws STAXPythonEvaluationException {
+        try {
             return pyCompile(value);
-        }
-        catch (PyException e)
-        {
+        } catch (PyException e) {
             throw new STAXPythonEvaluationException(
-                "\nPython object evaluation failed for:\n" +
-                value + "\n\n" + e.toString());
+                    "\nPython object evaluation failed for:\n" +
+                            value + "\n\n" + e.toString());
         }
     }
 
     // Evaluate a value using Jython and return a String result.
-     
-    public String pyStringEval(String value) 
-        throws STAXPythonEvaluationException
-    {
-        try 
-        {
+
+    public String pyStringEval(String value)
+            throws STAXPythonEvaluationException {
+        try {
             return pyCompile(value).__unicode__().toString();
-        }
-        catch (PyException e)
-        {
+        } catch (PyException e) {
             throw new STAXPythonEvaluationException(
-                "\nPython string evaluation failed for:\n" +
-                value + "\n\n" + e.toString());
+                    "\nPython string evaluation failed for:\n" +
+                            value + "\n\n" + e.toString());
         }
     }
 
     // Evaluate an expression using Jython and return a boolean result.
- 
+
     public boolean pyBoolEval(String expression)
-        throws STAXPythonEvaluationException
-    {
-        try
-        {  
+            throws STAXPythonEvaluationException {
+        try {
             return Py.py2boolean(pyCompile(expression));
-        }
-        catch (PyException e)
-        {
+        } catch (PyException e) {
             throw new STAXPythonEvaluationException(
-                "\nPython boolean evaluation failed for:\n" +
-                expression + "\n\n" + e.toString());
+                    "\nPython boolean evaluation failed for:\n" +
+                            expression + "\n\n" + e.toString());
         }
     }
 
     // Evaluate a value using Jython and return an integer result.
- 
-    public int pyIntEval(String value) throws STAXPythonEvaluationException
-    {
-        try
-        {  
+
+    public int pyIntEval(String value) throws STAXPythonEvaluationException {
+        try {
             return Py.py2int(pyCompile(value));
-        }
-        catch (PyException e)
-        {
+        } catch (PyException e) {
             throw new STAXPythonEvaluationException(
-                "\nPython integer evaluation failed for:\n" +
-                value + "\n\n" + e.toString());
+                    "\nPython integer evaluation failed for:\n" +
+                            value + "\n\n" + e.toString());
         }
     }
 
@@ -961,38 +915,29 @@ public class STAXThread implements STAXThreadCompleteListener
     //   machList[1:], machList[:-1], ['machA','machB'] + ['machC','machD']  
 
     public List pyListEval(String value)
-        throws STAXPythonEvaluationException
-    {
+            throws STAXPythonEvaluationException {
         List<Object> jList = new ArrayList<Object>();
 
-        synchronized(fPythonInterpreter)
-        {
+        synchronized (fPythonInterpreter) {
             PyObject result = null;
 
-            try
-            {
+            try {
                 result = pyCompile(value);
-            }
-            catch (PyException e)
-            {
+            } catch (PyException e) {
                 throw new STAXPythonEvaluationException(
-                    "\nPython list evaluation failed for:\n" +
-                    value + "\n" + e.toString());
+                        "\nPython list evaluation failed for:\n" +
+                                value + "\n" + e.toString());
             }
-            
+
             // Check if value is a STAXGlobal object
 
-            try 
-            {
-                if (pyBoolEval("isinstance(" + value + ", STAXGlobal)"))
-                {
+            try {
+                if (pyBoolEval("isinstance(" + value + ", STAXGlobal)")) {
                     // Use the STAXGlobal class's get() method to retrieve
                     // it's contents
                     result = pyCompile(value + ".get()");
                 }
-            }
-            catch (PyException e)
-            {
+            } catch (PyException e) {
                 // Ignore error and assume not a STAXGlobal object
             }
 
@@ -1005,38 +950,30 @@ public class STAXThread implements STAXThreadCompleteListener
             Object javaObj = result.__tojava__(Object.class);
 
             if (javaObj instanceof List &&
-                !(javaObj instanceof PyObject))
-            {
-                return (List)javaObj;
+                    !(javaObj instanceof PyObject)) {
+                return (List) javaObj;
             }
-            
-            try
-            {
+
+            try {
                 // Convert Python object to a Java ArrayList object
 
                 fPythonInterpreter.set("STAXIterateList", result);
 
-                if (Py.py2boolean(result))
-                {
-                    jList =  new ArrayList<Object>(Arrays.asList(
-                        (Object[])fPythonInterpreter.get(
-                            "STAXIterateList", Object[].class)));
+                if (Py.py2boolean(result)) {
+                    jList = new ArrayList<Object>(Arrays.asList(
+                            (Object[]) fPythonInterpreter.get(
+                                    "STAXIterateList", Object[].class)));
                 }
-            }
-            catch (PyException e)
-            {
-                try
-                {
+            } catch (PyException e) {
+                try {
                     jList = new ArrayList<Object>();
                     jList.add(javaObj);
-                }
-                catch (PyException e2)
-                {
+                } catch (PyException e2) {
                     throw new STAXPythonEvaluationException(
-                        "\nPython list evaluation failed for:\n" +
-                        value + "\n" + e.toString() + "\n" + e2.toString());
+                            "\nPython list evaluation failed for:\n" +
+                                    value + "\n" + e.toString() + "\n" + e2.toString());
                 }
-            } 
+            }
         }
 
         return jList;
@@ -1048,51 +985,42 @@ public class STAXThread implements STAXThreadCompleteListener
     // Example of possible value that can be passed in:
     //   "{'server': 'machineA', 'testDir': 'C:/tests'}"
 
-    public Map pyMapEval(String value) throws STAXPythonEvaluationException
-    {
+    public Map pyMapEval(String value) throws STAXPythonEvaluationException {
         // Extract a Python dictionary into a Java Map
 
         // Create an empty HashMap
-        Map<Object, PyObject> jMap = new HashMap<Object, PyObject>(); 
+        Map<Object, PyObject> jMap = new HashMap<Object, PyObject>();
 
-        try
-        {
+        try {
             PyObject result = pyCompile(value);
 
             // If a null string, an empty string, or "None" is passed in,
             // return an empty map.
 
             if ((result != null) && !(result.toString().equals("None")) &&
-                (result.toString() != ""))
-            {
-                if (result instanceof PyDictionary)
-                { 
-                    PyList pa = ((PyDictionary)result).items();
+                    (result.toString() != "")) {
+                if (result instanceof PyDictionary) {
+                    PyList pa = ((PyDictionary) result).items();
 
-                    while (pa.__len__() != 0)
-                    {
-                        PyTuple po = (PyTuple)pa.pop();
-                        Object first  = 
-                            po.__finditem__(0).__tojava__(Object.class);
+                    while (pa.__len__() != 0) {
+                        PyTuple po = (PyTuple) pa.pop();
+                        Object first =
+                                po.__finditem__(0).__tojava__(Object.class);
                         PyObject second = po.__finditem__(1);
                         jMap.put(first, second);
                     }
-                }
-                else
-                {
+                } else {
                     throw new STAXPythonEvaluationException(
-                        "\nThe following string does not evaluate " +
-                        "to a PyDictionary:\n" + value);
+                            "\nThe following string does not evaluate " +
+                                    "to a PyDictionary:\n" + value);
                 }
             }
-        }
-        catch (PyException e)
-        {
+        } catch (PyException e) {
             throw new STAXPythonEvaluationException(
-                "\nPython dictionary evaluation failed for:\n" + value +
-                "\n" + e.toString());
+                    "\nPython dictionary evaluation failed for:\n" + value +
+                            "\n" + e.toString());
         }
-        
+
         return jMap;
     }
 
@@ -1101,14 +1029,11 @@ public class STAXThread implements STAXThreadCompleteListener
      * Interpreter and converts them into a Java Map whose keys are the
      * Python variable names and whose values are the variable values.
      */
-    public Map<Object, PyObject> getLocals()
-    {
+    public Map<Object, PyObject> getLocals() {
         Map<Object, PyObject> jMap = new LinkedHashMap<Object, PyObject>();
 
-        synchronized(fPythonInterpreter)
-        {
-            try
-            {
+        synchronized (fPythonInterpreter) {
+            try {
                 PyObject result = fPythonInterpreter.getLocals();
 
                 PyList pa = new PyList();
@@ -1118,53 +1043,46 @@ public class STAXThread implements STAXThreadCompleteListener
                     pa = ((PyStringMap)result).copy().items();
                 else if (result instanceof PyDictionary)
                     pa = ((PyDictionary)result).copy().items();
-                */    
+                */
                 // Jython 2.5.x  getLocals() returns PyDictionary not a
                 //      PyStringMap as in Jython 2.1
                 if (result instanceof PyDictionary)
-                    pa = ((PyDictionary)result).copy().items();
+                    pa = ((PyDictionary) result).copy().items();
                 else if (result instanceof PyStringMap)
-                    pa = ((PyStringMap)result).copy().items();
+                    pa = ((PyStringMap) result).copy().items();
                 else
                     STAX.logToJVMLog(
-                        "Error", getJob().getJobNumber(), fThreadNumber,
-                        "STAXThread::getLocals() " +
-                        "fPythonInterpreter.getLocals() returned a " +
-                        "PyObject whose type couldn't be handled: " +
-                        result);
+                            "Error", getJob().getJobNumber(), fThreadNumber,
+                            "STAXThread::getLocals() " +
+                                    "fPythonInterpreter.getLocals() returned a " +
+                                    "PyObject whose type couldn't be handled: " +
+                                    result);
 
                 pa.sort();
 
-                for (int i = 0; i < pa.__len__(); i++)
-                {
-                    PyTuple po = (PyTuple)pa.__getitem__(i);
-                    Object first  = 
-                        po.__finditem__(0).__tojava__(Object.class);
+                for (int i = 0; i < pa.__len__(); i++) {
+                    PyTuple po = (PyTuple) pa.__getitem__(i);
+                    Object first =
+                            po.__finditem__(0).__tojava__(Object.class);
                     PyObject second = po.__finditem__(1);
 
-                    try
-                    {
-                        if (pyBoolEval("isinstance(" + first + ", STAXGlobal)"))
-                        {
+                    try {
+                        if (pyBoolEval("isinstance(" + first + ", STAXGlobal)")) {
                             // Use the STAXGlobal class's get() method to
                             // retrieve it's contents
                             second = pyCompile(first + ".get()");
                         }
-                    }
-                    catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         // Ignore error and assume not a STAXGlobal object
                     }
 
                     jMap.put(first, second);
                 }
-            }
-            catch (PyException e)
-            {
+            } catch (PyException e) {
                 STAX.logToJVMLog(
-                    "Error", getJob().getJobNumber(), fThreadNumber,
-                    "STAXThread::getLocals() PyException caught\n" +
-                    e.toString());
+                        "Error", getJob().getJobNumber(), fThreadNumber,
+                        "STAXThread::getLocals() PyException caught\n" +
+                                e.toString());
             }
         }
 
@@ -1176,61 +1094,48 @@ public class STAXThread implements STAXThreadCompleteListener
     //
 
     public void registerSignalHandler(String name,
-                                      STAXSignalExecutionAction signalHandler)
-    {
+                                      STAXSignalExecutionAction signalHandler) {
         fSignalHandlerMap.put(name, signalHandler);
     }
 
-    public void raiseSignal(String name)
-    {
+    public void raiseSignal(String name) {
         raiseSignal(name, null);
     }
 
-    public void raiseSignal(String name, STAXActionDefaultImpl raiserAction)
-    {
+    public void raiseSignal(String name, STAXActionDefaultImpl raiserAction) {
         // Check for this signal already
 
         // XXX: Should also check if same signalhandler action
-        if (fSignalStack.contains(name))
-        {
+        if (fSignalStack.contains(name)) {
             getJob().log(STAXJob.JOB_LOG, "error", "Duplicate signal " + name +
-                         ".  Terminating job.");
+                    ".  Terminating job.");
             terminate(THREAD_END_DUPLICATE_SIGNAL);
             return;
         }
 
         STAXAction handlerAction = fSignalHandlerMap.get(name);
 
-        if (handlerAction == null)
-        {
-            if (name != "STAXNoSuchSignalHandler")
-            {
+        if (handlerAction == null) {
+            if (name != "STAXNoSuchSignalHandler") {
                 String msg = "No signal handler exists for signal: " + name;
 
-                if (raiserAction != null)
-                {
+                if (raiserAction != null) {
                     raiserAction.setElementInfo(new STAXElementInfo(
-                        raiserAction.getElement(), "signal", msg));
-                    
+                            raiserAction.getElement(), "signal", msg));
+
                     setSignalMsgVar(
-                        "STAXNoSuchSignalHandlerMsg",
-                        STAXUtil.formatErrorMessage(raiserAction));
-                }
-                else
-                {
+                            "STAXNoSuchSignalHandlerMsg",
+                            STAXUtil.formatErrorMessage(raiserAction));
+                } else {
                     setSignalMsgVar("STAXNoSuchSignalHandlerMsg", msg);
                 }
 
                 raiseSignal("STAXNoSuchSignalHandler");
-            } 
-            else
-            {   // Should not happen - needed to break recursion
+            } else {   // Should not happen - needed to break recursion
                 getJob().log(STAXJob.JOB_LOG, "error", "No signal " +
-                    "handler exists for signal STAXNoSuchSignalHandler");
+                        "handler exists for signal STAXNoSuchSignalHandler");
             }
-        }
-        else
-        {
+        } else {
             pushAction(handlerAction.cloneAction());
             fSignalStack.addLast(name);
         }
@@ -1239,49 +1144,40 @@ public class STAXThread implements STAXThreadCompleteListener
     /**
      * Generate a message containing information about why the signal
      * was raised using information provided.
-     * 
+     *
      * @param signalMsgVarName The name of the signal message variable
-     * 
-     * @param xmlInfo Information about the element/[attribute] that
-     * caused the signal to be raised
+     * @param xmlInfo          Information about the element/[attribute] that
+     *                         caused the signal to be raised
      */
-    public void setSignalMsgVar(String signalMsgVarName, String xmlInfo)
-    {
+    public void setSignalMsgVar(String signalMsgVarName, String xmlInfo) {
         setSignalMsgVar(signalMsgVarName, xmlInfo, null);
     }
 
     /**
      * Generate a message containing information about why the signal
      * was raised using information provided.
-     * 
+     *
      * @param signalMsgVarName The name of the signal message variable
-     * 
-     * @param xmlInfo Information about the element/[attribute] that
-     * caused the signal to be raised
-     * 
-     * @param pythonException The STAXPythonEvaluationException that was
-     * raised
+     * @param xmlInfo          Information about the element/[attribute] that
+     *                         caused the signal to be raised
+     * @param pythonException  The STAXPythonEvaluationException that was
+     *                         raised
      */
     public void setSignalMsgVar(String signalMsgVarName,
                                 String xmlInfo,
-                                STAXPythonEvaluationException pythonException)
-    {
+                                STAXPythonEvaluationException pythonException) {
         StringBuffer msg = new StringBuffer();
 
-        if (xmlInfo != null)
-        {
+        if (xmlInfo != null) {
             msg.append("\n\n===== XML Information =====\n\n");
             msg.append(xmlInfo);
         }
 
-        if (pythonException != null)
-        {
+        if (pythonException != null) {
             msg.append("\n\n===== Python Error Information =====\n\n");
             msg.append(pythonException);
             msg.append("\n");
-        }
-        else
-        {
+        } else {
             msg.append("\n\n");
         }
 
@@ -1292,13 +1188,12 @@ public class STAXThread implements STAXThreadCompleteListener
 
         List<String> conditionStack = this.getConditionStack();
 
-        if (conditionStack.size() > 0)
-        {
+        if (conditionStack.size() > 0) {
             msg.append("\n\n==== Condition Stack for STAX Thread ");
             msg.append(fThreadNumber);
             msg.append(" =====\n\n");
             msg.append(STAFMarshallingContext.formatObject(
-                getConditionStack()));
+                    getConditionStack()));
         }
 
         // Set the message value to the signal message variable name
@@ -1306,40 +1201,32 @@ public class STAXThread implements STAXThreadCompleteListener
         pySetVar(signalMsgVarName, msg.toString());
     }
 
-    public void handledSignal(String name)
-    {
+    public void handledSignal(String name) {
         if ((fSignalStack.size() == 0) ||
-            (!(fSignalStack.getLast()).equals(name)))
-        {
+                (!(fSignalStack.getLast()).equals(name))) {
             STAX.logToJVMLog(
-                "Error", getJob().getJobNumber(), fThreadNumber,
-                "STAXThread::handledSignal(): " +
-                "We aren't currently handling signal: " + name);
+                    "Error", getJob().getJobNumber(), fThreadNumber,
+                    "STAXThread::handledSignal(): " +
+                            "We aren't currently handling signal: " + name);
             // XXX: Not good
-        }
-        else fSignalStack.removeLast();
+        } else fSignalStack.removeLast();
     }
 
-    public List<String> getCallStack()
-    {
+    public List<String> getCallStack() {
         // Generate the call stack
-        
+
         List<String> callStack = new ArrayList<String>();
 
-        this.visitActions(new STAXVisitorHelper(callStack)
-        {
-            public void visit(Object o, Iterator iter)
-            {
+        this.visitActions(new STAXVisitorHelper(callStack) {
+            public void visit(Object o, Iterator iter) {
                 @SuppressWarnings("unchecked")
-                List<String> callStack = (ArrayList<String>)fData;
+                List<String> callStack = (ArrayList<String>) fData;
 
-                if (o instanceof STAXActionDefaultImpl)
-                {
-                    STAXActionDefaultImpl action = (STAXActionDefaultImpl)o;
+                if (o instanceof STAXActionDefaultImpl) {
+                    STAXActionDefaultImpl action = (STAXActionDefaultImpl) o;
 
                     if ((o instanceof STAXBreakpointAction) &&
-                        !(action.getInfo().equals("")))
-                    {
+                            !(action.getInfo().equals(""))) {
                         // This a STAXBreakpointAction created for a
                         // Function or Line breakpoint, or due to a STEP
                         // request, so don't include this action in the
@@ -1347,13 +1234,11 @@ public class STAXThread implements STAXThreadCompleteListener
                         return;
                     }
                     callStack.add(STAXUtil.formatActionInfo(action));
-                 }
-                else
-                {
-                    STAXAction action = (STAXAction)o;
+                } else {
+                    STAXAction action = (STAXAction) o;
 
                     String className = STAXUtil.getShortClassName(
-                        action.getClass().getName(), "Action");
+                            action.getClass().getName(), "Action");
 
                     callStack.add(className + ": " + action.getInfo());
                 }
@@ -1362,36 +1247,32 @@ public class STAXThread implements STAXThreadCompleteListener
 
         return callStack;
     }
-    
-    public List<String> getConditionStack()
-    {
+
+    public List<String> getConditionStack() {
         // Generate the condition stack
 
         List<String> conditionStack = new ArrayList<String>();
 
-        this.visitConditions(new STAXVisitorHelper(conditionStack)
-        {
-            public void visit(Object o, Iterator iter)
-            {
-                STAXCondition condition = (STAXCondition)o;
+        this.visitConditions(new STAXVisitorHelper(conditionStack) {
+            public void visit(Object o, Iterator iter) {
+                STAXCondition condition = (STAXCondition) o;
 
                 @SuppressWarnings("unchecked")
-                List<String> conditionStack = (ArrayList<String>)fData;
+                List<String> conditionStack = (ArrayList<String>) fData;
 
                 String className = STAXUtil.getShortClassName(
-                    condition.getClass().getName(), "Condition");
+                        condition.getClass().getName(), "Condition");
 
                 conditionStack.add(
-                    className + ": Source=" + condition.getSource() +
-                    ", Priority=" + condition.getPriority());
+                        className + ": Source=" + condition.getSource() +
+                                ", Priority=" + condition.getPriority());
             }
         });
 
         return conditionStack;
     }
 
-    public String getParentHierarchy()
-    {
+    public String getParentHierarchy() {
         return fThreadParentHierarchy;
     }
 
@@ -1399,15 +1280,12 @@ public class STAXThread implements STAXThreadCompleteListener
     // State functions
     //
 
-    public int getState()
-    {
+    public int getState() {
         return fState;
     }
 
-    public String getStateAsString()
-    {
-        switch (fState)
-        {
+    public String getStateAsString() {
+        switch (fState) {
             case STATE_INIT:
                 return STATE_INIT_STRING;
             case STATE_RUNNABLE:
@@ -1426,22 +1304,20 @@ public class STAXThread implements STAXThreadCompleteListener
     // XXX: Might we need an inheritCondition in addition to addCondition?
     //      Would this make the logic easier here and in the conditions?
 
-    public boolean addCondition(STAXCondition condition)
-    {
-        synchronized (fConditionSet)
-        { return fConditionSet.add(condition); }
+    public boolean addCondition(STAXCondition condition) {
+        synchronized (fConditionSet) {
+            return fConditionSet.add(condition);
+        }
     }
 
-    public boolean removeCondition(STAXCondition condition)
-    {
-        synchronized (fConditionSet)
-        { return fConditionSet.remove(condition); }
+    public boolean removeCondition(STAXCondition condition) {
+        synchronized (fConditionSet) {
+            return fConditionSet.remove(condition);
+        }
     }
 
-    public void visitConditions(STAXVisitor visitor)
-    {
-        synchronized (fConditionSet)
-        {
+    public void visitConditions(STAXVisitor visitor) {
+        synchronized (fConditionSet) {
             Iterator<STAXCondition> iter = fConditionSet.iterator();
 
             while (iter.hasNext())
@@ -1453,15 +1329,12 @@ public class STAXThread implements STAXThreadCompleteListener
     // Execution functions
     //
 
-    public void pushAction(STAXAction action)
-    {
-        synchronized (fActionStack)
-        {
+    public void pushAction(STAXAction action) {
+        synchronized (fActionStack) {
             fActionStack.addLast(action);
 
             if (fBreakpointFirstFunction &&
-                (action instanceof STAXFunctionAction))
-            {
+                    (action instanceof STAXFunctionAction)) {
                 fBreakpointCondition = true;
                 fBreakpointFirstFunction = false;
             }
@@ -1471,39 +1344,31 @@ public class STAXThread implements STAXThreadCompleteListener
             // If we are not already stepping through the action stack, and
             // there are breakpoints set, check to see if this action matches
             // a breakpoint function or line
-            if (!pushBreakpoint && !(fJob.breakpointsEmpty()))
-            {
+            if (!pushBreakpoint && !(fJob.breakpointsEmpty())) {
                 // Check for a function breakpoint
                 if ((action instanceof STAXFunctionAction) &&
-                    (fJob.isBreakpointFunction(
-                    ((STAXFunctionAction)action).getName())))
-                {
+                        (fJob.isBreakpointFunction(
+                                ((STAXFunctionAction) action).getName()))) {
                     pushBreakpoint = true;
                 }
                 // Check for a line breakpoint
                 else if (fJob.isBreakpointLine(
-                         ((STAXActionDefaultImpl)action).getLineNumber(),
-                         ((STAXActionDefaultImpl)action).getXmlFile(),
-                         ((STAXActionDefaultImpl)action).getXmlMachine()))
-                {
+                        ((STAXActionDefaultImpl) action).getLineNumber(),
+                        ((STAXActionDefaultImpl) action).getXmlFile(),
+                        ((STAXActionDefaultImpl) action).getXmlMachine())) {
                     pushBreakpoint = true;
                 }
             }
 
-            if (pushBreakpoint)
-            {
-                if (action instanceof STAXBreakpointAction)
-                {
+            if (pushBreakpoint) {
+                if (action instanceof STAXBreakpointAction) {
                     // This is a breakpoint element, so we don't need to
                     // add a new STAXBreakpointAction
-                }
-                else
-                {
-                    if (fBreakpointActionFactory == null)
-                    {
+                } else {
+                    if (fBreakpointActionFactory == null) {
                         fBreakpointActionFactory =
-                            (STAXBreakpointActionFactory)
-                            fJob.getSTAX().getActionFactory("breakpoint");
+                                (STAXBreakpointActionFactory)
+                                        fJob.getSTAX().getActionFactory("breakpoint");
                     }
 
                     // Create a new STAXBreakpointAction and add it to the
@@ -1511,7 +1376,7 @@ public class STAXThread implements STAXThreadCompleteListener
                     // the action that was previously added to the end of the
                     // action stack
                     STAXAction stepBreakpointAction =
-                        fBreakpointActionFactory.createStepBreakpoint(action);
+                            fBreakpointActionFactory.createStepBreakpoint(action);
 
                     fActionStack.addLast(stepBreakpointAction);
                 }
@@ -1519,17 +1384,14 @@ public class STAXThread implements STAXThreadCompleteListener
         }
     }
 
-    public void popAction()
-    {
-        synchronized (fActionStack)
-        {
+    public void popAction() {
+        synchronized (fActionStack) {
             STAXAction lastAction = fActionStack.getLast();
 
             fActionStack.removeLast();
 
             if ((lastAction instanceof STAXBreakpointAction) &&
-                fStepOverCondition)
-            {
+                    fStepOverCondition) {
                 // If we are popping off a STAXBreakpointAction after a STEP
                 // OVER request, then set the fStepOverIndex to be 1 less than
                 // the current action stack size.  The next breakpoint should
@@ -1540,10 +1402,8 @@ public class STAXThread implements STAXThreadCompleteListener
                 fStepOverIndex = fActionStack.size() - 1;
             }
 
-            if (fStepOverIndex == fActionStack.size())
-            {
-                if (!(lastAction instanceof STAXCallAction))
-                {
+            if (fStepOverIndex == fActionStack.size()) {
+                if (!(lastAction instanceof STAXCallAction)) {
                     // Only do this if the lastAction is not a STAXCallAction.
                     // This is because the STAXCallAction is popped from the
                     // action stack before the STAXFunctionAction is added.
@@ -1558,17 +1418,13 @@ public class STAXThread implements STAXThreadCompleteListener
         }
     }
 
-    public void visitActions(STAXVisitor visitor)
-    {
-        synchronized (fActionStack)
-        {
+    public void visitActions(STAXVisitor visitor) {
+        synchronized (fActionStack) {
             Iterator<STAXAction> iter = fActionStack.iterator();
             int i = 0;
 
-            while (iter.hasNext())
-            {
-                if ((fThreadNumber == 1) && (i < 2))
-                {
+            while (iter.hasNext()) {
+                if ((fThreadNumber == 1) && (i < 2)) {
                     // Ignore the first two actions in the action stack for
                     // thread 1 as they are internal to the STAX service and
                     // don't need to be provided in the call stack:
@@ -1585,20 +1441,16 @@ public class STAXThread implements STAXThreadCompleteListener
         }
     }
 
-    public void schedule()
-    {
+    public void schedule() {
         boolean initState = false;
 
-        synchronized (fConditionSet)
-        {
-            if (fState == STATE_INIT)
-            {
+        synchronized (fConditionSet) {
+            if (fState == STATE_INIT) {
                 initState = true;
                 fState = STATE_BLOCKED;
             }
-            
-            if (fState == STATE_BLOCKED)
-            {
+
+            if (fState == STATE_BLOCKED) {
                 fState = STATE_RUNNABLE;
                 fJob.getSTAX().getThreadQueue().add(this);
             }
@@ -1607,8 +1459,7 @@ public class STAXThread implements STAXThreadCompleteListener
         // Did it this way so that generating a thread start event would not
         // be part of the synchronized (fConditionSet) block above.
 
-        if (initState)
-        {
+        if (initState) {
             // Generate a thread start event
 
             HashMap<String, String> eventMap = new HashMap<String, String>();
@@ -1616,51 +1467,41 @@ public class STAXThread implements STAXThreadCompleteListener
             eventMap.put("id", String.valueOf(fThreadNumber));
             eventMap.put("status", "start");
 
-            if (fParent != null)
-            {
+            if (fParent != null) {
                 eventMap.put("parent",
-                             String.valueOf(fParent.getThreadNumber()));
+                        String.valueOf(fParent.getThreadNumber()));
                 eventMap.put("parentHierarchy", fThreadParentHierarchy);
             }
 
             List<String> callStack = getCallStack();
 
-            if (callStack.size() > 0)
-            {
+            if (callStack.size() > 0) {
                 eventMap.put("detailText",
-                             callStack.get(callStack.size() - 1));
+                        callStack.get(callStack.size() - 1));
             }
-            
+
             fJob.generateEvent(STAXThread.THREAD, eventMap);
         }
     }
 
-    public void execute()
-    {
+    public void execute() {
         int numActions = 0;
 
         fState = STATE_RUNNING;
 
-        while (true)
-        {
-            if (++numActions == MAX_NON_BLOCKING_ACTIONS)
-            {
-                synchronized (fConditionSet)
-                {
+        while (true) {
+            if (++numActions == MAX_NON_BLOCKING_ACTIONS) {
+                synchronized (fConditionSet) {
                     fState = STATE_BLOCKED;
                     schedule();
                     return;
                 }
             }
 
-            if (fActionStack.size() == 0)
-            {
-                synchronized (fChildThreadSet)
-                {
-                    synchronized (fConditionSet)
-                    {
-                        if (fChildThreadSet.size() != 0)
-                        {
+            if (fActionStack.size() == 0) {
+                synchronized (fChildThreadSet) {
+                    synchronized (fConditionSet) {
+                        if (fChildThreadSet.size() != 0) {
                             fState = STATE_BLOCKED;
                             return;
                         }
@@ -1669,106 +1510,92 @@ public class STAXThread implements STAXThreadCompleteListener
 
                 fState = STATE_COMPLETE;
 
-                if (fParent == null)
-                {
-                    try
-                    {
+                if (fParent == null) {
+                    try {
                         fJob.setCompletionStatus(pyIntEval("STAXBlockRC"));
-                    }
-                    catch (STAXPythonEvaluationException e)
-                    {
+                    } catch (STAXPythonEvaluationException e) {
                         fJob.setCompletionStatus(STAXJob.ABNORMAL_STATUS);
 
                         fJob.log(STAXJob.JOB_LOG, "error", "Error evaluating" +
-                                 " STAXBlockRC variable when setting job " +
-                                 "completion status");
+                                " STAXBlockRC variable when setting job " +
+                                "completion status");
                     }
                 }
 
-                synchronized (fConditionSet)
-                {
+                synchronized (fConditionSet) {
                     boolean addedParentCondition = false;
-                    
-                    for (STAXCondition cond : fConditionSet)
-                    {
+
+                    for (STAXCondition cond : fConditionSet) {
                         // XXX: We need to get the parent running again so
                         //      that it may kill any children threads if
                         //      necessary
                         // XXX: Is it safe to schedule the parent?
                         // XXX: Should addCondition call schedule()?
 
-                        if ((fParent == null) && cond.isInheritable())
-                        {
+                        if ((fParent == null) && cond.isInheritable()) {
                             fJob.setCompletionStatus(STAXJob.ABNORMAL_STATUS);
 
                             String className = STAXUtil.getShortClassName(
-                                cond.getClass().getName(), "Condition");
+                                    cond.getClass().getName(), "Condition");
 
                             StringBuffer errorMsg = new StringBuffer(
-                                "Unhandled \"");
+                                    "Unhandled \"");
 
                             errorMsg.append(className).append(
-                                "\" condition found at end of job.");
+                                    "\" condition found at end of job.");
 
                             if ((cond.getSource() != null) &&
-                                (cond.getSource().length() > 0))
-                            {
+                                    (cond.getSource().length() > 0)) {
                                 errorMsg.append("\nSource: ").append(
-                                    cond.getSource());
+                                        cond.getSource());
 
-                                if (className.equals("Exception"))
-                                {
+                                if (className.equals("Exception")) {
                                     errorMsg.append("\nInfo: ").append(
-                                        ((STAXExceptionCondition)
-                                        cond).getData());
+                                            ((STAXExceptionCondition)
+                                                    cond).getData());
 
                                     List stackTrace = ((STAXExceptionCondition)
-                                        cond).getStackTrace();
+                                            cond).getStackTrace();
 
                                     errorMsg.append(
-                                        "\n\n===== Stack Trace =====\n\n" +
-                                        STAFMarshallingContext.formatObject(
-                                        stackTrace));
+                                            "\n\n===== Stack Trace =====\n\n" +
+                                                    STAFMarshallingContext.formatObject(
+                                                            stackTrace));
                                 }
                             }
 
                             fJob.log(STAXJob.JOB_LOG, "error",
-                                     errorMsg.toString());
-                        }
-                        else if (cond.isInheritable())
-                        {
+                                    errorMsg.toString());
+                        } else if (cond.isInheritable()) {
                             fParent.addCondition(cond);
                             addedParentCondition = true;
                         }
                     }
 
-                    if (fBreakpointCondition && (fParent != null))
-                    {
+                    if (fBreakpointCondition && (fParent != null)) {
                         fParent.setBreakpointCondition(true);
                     }
 
                     if (addedParentCondition) fParent.schedule();
                 }
 
-                if (fJob.getSTAX().getDebugThread())
-                {
+                if (fJob.getSTAX().getDebugThread()) {
                     STAX.logToJVMLog(
-                        "Debug", fJob.getJobNumber(), fThreadNumber,
-                        "STAXThread: Complete");
+                            "Debug", fJob.getJobNumber(), fThreadNumber,
+                            "STAXThread: Complete");
                 }
 
                 HashMap<String, String> threadMap =
-                    new HashMap<String, String>();
+                        new HashMap<String, String>();
                 threadMap.put("type", "thread");
                 threadMap.put("id", String.valueOf(fThreadNumber));
                 threadMap.put("status", "stop");
 
                 fJob.generateEvent(STAXThread.THREAD, threadMap);
 
-                while (!fCompletionNotifiees.isEmpty())
-                {
+                while (!fCompletionNotifiees.isEmpty()) {
                     STAXThreadCompleteListener listener =
-                        fCompletionNotifiees.removeFirst();
+                            fCompletionNotifiees.removeFirst();
 
                     if (listener != null)
                         listener.threadComplete(this, fCompletionCode);
@@ -1780,27 +1607,23 @@ public class STAXThread implements STAXThreadCompleteListener
             STAXAction action = fActionStack.getLast();
             STAXCondition currCondition = null;
 
-            synchronized (fConditionSet)
-            {
-                if (fConditionSet.size() != 0)
-                {
+            synchronized (fConditionSet) {
+                if (fConditionSet.size() != 0) {
                     currCondition = fConditionSet.first();
 
                 }
 
                 if ((currCondition != null) &&
-                    ((currCondition instanceof STAXHoldThreadCondition) ||
-                     (currCondition instanceof STAXHardHoldThreadCondition)))
-                {
-                    if (fJob.getSTAX().getDebugThread())
-                    {
+                        ((currCondition instanceof STAXHoldThreadCondition) ||
+                                (currCondition instanceof STAXHardHoldThreadCondition))) {
+                    if (fJob.getSTAX().getDebugThread()) {
                         String condName = currCondition.getClass().getName();
                         condName = condName.substring(
-                                   condName.lastIndexOf(".") + 1);
+                                condName.lastIndexOf(".") + 1);
 
                         STAX.logToJVMLog(
-                            "Debug", fJob.getJobNumber(), fThreadNumber,
-                            "STAXThread: Blocking due to " + condName);
+                                "Debug", fJob.getJobNumber(), fThreadNumber,
+                                "STAXThread: Blocking due to " + condName);
                     }
 
                     fState = STATE_BLOCKED;
@@ -1808,36 +1631,31 @@ public class STAXThread implements STAXThreadCompleteListener
                 }
             }
 
-            if (currCondition == null)
-            {
-                if (fJob.getSTAX().getDebugThread())
-                {
+            if (currCondition == null) {
+                if (fJob.getSTAX().getDebugThread()) {
                     String actionName = action.getClass().getName();
                     actionName = actionName.substring(
-                                 actionName.lastIndexOf(".") + 1);
+                            actionName.lastIndexOf(".") + 1);
 
                     STAX.logToJVMLog(
-                        "Debug", fJob.getJobNumber(), fThreadNumber,
-                        "STAXThread: Calling " + actionName);
+                            "Debug", fJob.getJobNumber(), fThreadNumber,
+                            "STAXThread: Calling " + actionName);
                 }
 
                 action.execute(this);
-            }
-            else
-            {
-                if (fJob.getSTAX().getDebugThread())
-                {
+            } else {
+                if (fJob.getSTAX().getDebugThread()) {
                     String actionName = action.getClass().getName();
                     actionName = actionName.substring(
-                                 actionName.lastIndexOf(".") + 1);
+                            actionName.lastIndexOf(".") + 1);
                     String condName = currCondition.getClass().getName();
                     condName = condName.substring(
-                               condName.lastIndexOf(".") + 1);
+                            condName.lastIndexOf(".") + 1);
 
                     STAX.logToJVMLog(
-                        "Debug", fJob.getJobNumber(), fThreadNumber,
-                        "STAXThread: Calling " + actionName +
-                        ", handling " + condName);
+                            "Debug", fJob.getJobNumber(), fThreadNumber,
+                            "STAXThread: Calling " + actionName +
+                                    ", handling " + condName);
                 }
 
                 action.handleCondition(this, currCondition);
@@ -1846,10 +1664,8 @@ public class STAXThread implements STAXThreadCompleteListener
         }  // end while
     }
 
-    public void terminate(int termCode)
-    {
-        synchronized (fConditionSet)
-        {
+    public void terminate(int termCode) {
+        synchronized (fConditionSet) {
             fCompletionCode = termCode;
             addCondition(new STAXTerminateThreadCondition("Thread"));
             schedule();
@@ -1858,10 +1674,8 @@ public class STAXThread implements STAXThreadCompleteListener
 
     // STAXThreadCompleteListener method
 
-    public void threadComplete(STAXThread thread, int endCode)
-    {
-        synchronized(fChildThreadSet)
-        {
+    public void threadComplete(STAXThread thread, int endCode) {
+        synchronized (fChildThreadSet) {
             Integer threadID = thread.getThreadNumberAsInteger();
             fChildThreadSet.remove(threadID);
             thread.getJob().removeThread(threadID);
@@ -1874,38 +1688,30 @@ public class STAXThread implements STAXThreadCompleteListener
 
     // This class is used to sort the conditions in the condition set
 
-    class STAXConditionComparator implements Comparator<STAXCondition>
-    {
-        public int compare(STAXCondition c1, STAXCondition c2)
-        {
-            if (c1.getPriority() == c2.getPriority())
-            {
+    class STAXConditionComparator implements Comparator<STAXCondition> {
+        public int compare(STAXCondition c1, STAXCondition c2) {
+            if (c1.getPriority() == c2.getPriority()) {
                 if (c1.hashCode() == c2.hashCode()) return 0;
                 else if (c1.hashCode() < c2.hashCode()) return -1;
-            }
-            else if (c1.getPriority() < c2.getPriority()) return -1;
+            } else if (c1.getPriority() < c2.getPriority()) return -1;
 
             return 1;
         }
     }
 
-    public void setBreakpointCondition(boolean breakpointCondition)
-    {
+    public void setBreakpointCondition(boolean breakpointCondition) {
         this.fBreakpointCondition = breakpointCondition;
     }
 
-    public boolean getBreakpointCondition()
-    {
+    public boolean getBreakpointCondition() {
         return fBreakpointCondition;
     }
 
-    public void setStepOverCondition(boolean stepOverCondition)
-    {
+    public void setStepOverCondition(boolean stepOverCondition) {
         this.fStepOverCondition = stepOverCondition;
     }
 
-    public void setBreakpointFirstFunction(boolean breakpointFirstFunction)
-    {
+    public void setBreakpointFirstFunction(boolean breakpointFirstFunction) {
         this.fBreakpointFirstFunction = breakpointFirstFunction;
     }
 
@@ -1920,14 +1726,14 @@ public class STAXThread implements STAXThreadCompleteListener
     private int fThreadNumber = 0;
     private STAXThread fParent = null;
     private HashMap<String, STAXAction> fSignalHandlerMap =
-        new HashMap<String, STAXAction>();
+            new HashMap<String, STAXAction>();
     private STAXPythonInterpreter fPythonInterpreter;
     private LinkedList<STAXAction> fActionStack = new LinkedList<STAXAction>();
     private LinkedList<String> fSignalStack = new LinkedList<String>();
     private TreeSet<STAXCondition> fConditionSet =
-        new TreeSet<STAXCondition>(new STAXConditionComparator());
+            new TreeSet<STAXCondition>(new STAXConditionComparator());
     private LinkedList<STAXThreadCompleteListener> fCompletionNotifiees =
-        new LinkedList<STAXThreadCompleteListener>();
+            new LinkedList<STAXThreadCompleteListener>();
     private Set<Integer> fChildThreadSet = new LinkedHashSet<Integer>();
     private STAXTimestamp fStartTimestamp;
     private STAXBreakpointActionFactory fBreakpointActionFactory = null;

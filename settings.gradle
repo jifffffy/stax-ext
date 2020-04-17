@@ -1,4 +1,5 @@
 rootProject.name = 'stax-ext'
 include 'stax'
 include 'ext-delay'
+include 'ext-dialog'
 

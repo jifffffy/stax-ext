@@ -8,7 +8,6 @@ dependencies {
 }
 
 
-
 task stafManifest {
 
     doLast {
@@ -61,5 +60,5 @@ task staf(type: Jar, dependsOn: stafManifest) {
         from ('Lib')
     }
 
-    archiveName = 'STAX-' + version + '.jar'
+    archiveName = 'STAX' + '.jar'
 }

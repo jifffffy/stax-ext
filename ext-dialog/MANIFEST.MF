@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+
+Name: staf/staxinfo/extension
+Extension-Version: 3.3.0
+Extension-Description: Dialog STAX Extensions
+Required-Service-Version: 3.3.0
+Required-Monitor-Version: 3.0.0
+
+Name: staf/stax/extension/ext-dialog
+Factory-Class: org.jsun.stax.ext.ExtDialogActionFactory
+
